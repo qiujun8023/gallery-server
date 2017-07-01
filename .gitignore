@@ -1,0 +1,13 @@
+.idea
+.vscode
+.DS_Store
+
+*.log
+*.out
+
+node_modules
+
+server/pm2.json
+server/.nyc_output
+server/coverage
+server/config/local.*
