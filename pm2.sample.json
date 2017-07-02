@@ -16,6 +16,19 @@
       "autorestart": true,
       "error_file": "/tmp/album.stderr.log",
       "out_file": "/tmp/album.stdout.log"
+    },
+    {
+      "name": "album-cron",
+      "script": "cron.js",
+      "env": {
+        "NODE_ENV": "production"
+      },
+      "log_date_format": "YYYY-MM-DD HH:mm Z",
+      "watch": false,
+      "merge_logs": true,
+      "autorestart": true,
+      "error_file": "/tmp/album-cron.stderr.log",
+      "out_file": "/tmp/album-cron.stdout.log"
     }
   ]
 }

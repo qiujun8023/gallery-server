@@ -12,8 +12,10 @@
     "url": "https://github.com/qious/album.git"
   },
   "scripts": {
-    "dev": "nodemon -e js,json app.js",
+    "dev": "nodemon -e js,json,art app.js",
+    "cron": "nodemon -e js,json,art cron.js",
     "lint": "eslint --ignore-path .lintignore .",
+    "start": "pm2 start pm2.json",
     "postmerge": "npm install"
   },
   "devDependencies": {
@@ -28,7 +30,9 @@
     "nodemon": "^1.11.0"
   },
   "dependencies": {
+    "art-template": "^4.12.1",
     "config": "^1.26.1",
+    "cron": "^1.2.1",
     "ioredis": "^3.1.1",
     "koa": "^2.3.0",
     "koa-bodyparser": "^4.2.0",
@@ -37,11 +41,11 @@
     "koa-json-error": "^3.1.2",
     "koa-redis": "^3.0.0",
     "koa-router": "^7.2.1",
-    "koa-send": "^4.1.0",
-    "koa-static": "^3.0.0",
     "lodash": "^4.17.4",
+    "request": "^2.81.0",
+    "request-promise": "^4.2.1",
     "upyun": "^3.0.1",
-    "url-join": "^2.0.2",
+    "urlencode": "^1.1.0",
     "winston": "^2.3.1"
   }
 }

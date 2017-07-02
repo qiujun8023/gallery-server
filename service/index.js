@@ -1,76 +1,74 @@
 'use strict'
 
-const crypto = require('crypto')
 const _ = require('lodash')
+const rp = require('request-promise')
 const config = require('config')
 const upyun = require('upyun')
 const redis = require('../lib/redis')
+const logger = require('../lib/logger')
 const urlJoin = require('../lib/url_join')
+const utils = require('./utils')
 
-const CACHE_TIME = 300
-const IMG_EXT = ['.png', '.jpg', '.jpeg', '.bmp', '.gif']
+const MIN_FILE_CACHE_TIME = 600
+const MAX_FILE_CACHE_TIME = 1200
+const MIN_META_CACHE_TIME = 43200
+const MAX_META_CACHE_TIME = 86400
 const META_FILTER = ['name', 'description', 'data']
 const ITEM_FILTER = ['path', 'name', 'type', 'description', 'thumbnails', 'question']
+const UPYUN_LAST_PAGE_ITER = 'g2gCZAAEbmV4dGQAA2VvZg'
 
 // 创建 upyun sdk 实例
 let {bucket, operator, password} = config.upyun
 let clientConfig = new upyun.Bucket(bucket, operator, password)
 let client = new upyun.Client(clientConfig)
 
-// MD5
-exports.md5 = function (str) {
-  return crypto.createHash('md5').update(str).digest('hex')
+// 获取图片访问地址
+exports.getFileUrl = function (path) {
+  let {baseUrl, token} = config.upyun
+  let query = ''
+  if (token) {
+    let etime = Math.round(Date.now() / 1000) + 1800
+    let sign = utils.md5(`${token}&${etime}&${path}`).substr(12, 8)
+    query = `?_upt=${sign}${etime}`
+  }
+
+  path = path.split('/').map(encodeURIComponent).join('/')
+  return baseUrl + _.trimStart(path, '/') + query
 }
 
-// 过滤非图片文件
-exports.filterImg = function (files) {
-  return files.filter((file) => {
-    if (file.type === 'N') {
-      let name = file.name.toLowerCase()
-      var index = name.lastIndexOf('.')
-      if (index === -1) {
-        return false
-      }
-      let ext = name.substring(index)
-      if (IMG_EXT.indexOf(ext) === -1) {
-        return false
-      }
-    }
-    return true
-  })
+// 又拍云文件列表缓存时间
+exports.getFileCacheTime = function () {
+  return _.random(MIN_FILE_CACHE_TIME, MAX_META_CACHE_TIME)
 }
 
-// 图片排序，图集优先
-exports.sortFiles = function (files) {
-  files.sort(function (a, b) {
-    if (a.type === 'F' && b.type !== 'F') {
-      return -1
-    } else if (a.type !== 'F' && b.type === 'F') {
-      return 1
-    }
-    return a.name > b.name ? 1 : -1
-  })
-  return files
+// 图片元信息缓存时间
+exports.getMetaCacheTime = function () {
+  return _.random(MIN_META_CACHE_TIME, MAX_FILE_CACHE_TIME)
 }
 
 // 从又拍云获取文件列表
 exports.listDirAsync = async function (remotePath) {
-  let data = await redis.get(remotePath)
-  if (data) {
-    return JSON.parse(data)
-  } else {
-    data = []
+  let cacheKey = 'files:' + utils.md5(remotePath)
+  let cacheData = await redis.get(cacheKey)
+  if (cacheData) {
+    return JSON.parse(cacheData)
   }
 
   let iter
+  let data = []
   do {
-    let res = await client.listDir(remotePath, {iter, limit: 1000})
-    data = data.concat(res.files)
-    iter = res.iter
-  } while (iter)
+    let res = await client.listDir(remotePath, {iter: iter, limit: 1000})
+    if (res) {
+      data = data.concat(res.files)
+      iter = res.next
+    }
+  } while (iter && iter !== UPYUN_LAST_PAGE_ITER)
 
-  data = this.sortFiles(this.filterImg(data))
-  await redis.setex(remotePath, CACHE_TIME, JSON.stringify(data))
+  logger.info('request upyun to list dir: %s', remotePath)
+  data = utils.sortFiles(utils.filterImg(data))
+  let cacheTime = this.getFileCacheTime()
+  logger.info('set list to cache, key: %s, ttl: ', cacheKey, cacheTime)
+  await redis.setex(cacheKey, cacheTime, JSON.stringify(data))
   return data
 }
 
@@ -80,24 +78,32 @@ exports.findThumbnailsAsync = async function (remotePath) {
   return _.map(files.slice(0, 4), 'name')
 }
 
-// 获取图片访问地址
-exports.getFileUrlAsync = async function (path) {
-  let {baseUrl, token} = config.upyun
-  if (!token) {
-    return baseUrl + _.trimStart(path, '/')
+// 获取图片元数据
+exports.getMetaAsync = async function (path, url) {
+  let cacheKey = 'meta:' + utils.md5(path)
+  let cacheData = await redis.get(cacheKey)
+  if (cacheData) {
+    return JSON.parse(cacheData)
   }
-  let etime = Math.round(Date.now() / 1000) + 1800
-  let sign = this.md5(`${token}&${etime}&${path}`).substr(12, 8)
-  return baseUrl + _.trimStart(path, '/') + `?_upt=${sign}${etime}`
+
+  logger.info('request upyun to fetch meta: %s', path)
+  let meta = await rp({url, json: true})
+  let cacheTime = this.getMetaCacheTime()
+  logger.info('set meta to cache, key: %s, ttl: ', cacheKey, cacheTime)
+  await redis.setex(cacheKey, cacheTime, JSON.stringify(meta))
+  return meta
 }
 
 // 格式化文件信息
 exports.formatFileAsync = async function (info, path) {
+  let metaUrl = this.getFileUrl(path + '!/meta')
+  let meta = await this.getMetaAsync(path, metaUrl)
   return {
     path,
     name: info.name,
+    meta,
     type: 'IMAGE',
-    url: await this.getFileUrlAsync(path)
+    url: this.getFileUrl(path)
   }
 }
 
@@ -123,7 +129,7 @@ exports.formatDirAsync = async function (info, path) {
   // 获取缩略图请求地址
   for (let i = 0; i < info.thumbnails.length; i++) {
     let thumbnailPath = urlJoin(path, info.thumbnails[i])
-    info.thumbnails[i] = await this.getFileUrlAsync(thumbnailPath)
+    info.thumbnails[i] = this.getFileUrl(thumbnailPath)
   }
   return info
 }
