@@ -44,5 +44,5 @@ module.exports = {
     }
   },
 
-  clientDir: path.join(__dirname, '../../client/dist')
+  staticDir: path.join(__dirname, '../static')
 }

@@ -19,6 +19,7 @@
     "postmerge": "npm install"
   },
   "devDependencies": {
+    "css-loader": "^0.28.4",
     "eslint": "^3.14.1",
     "eslint-config-standard": "^6.2.1",
     "eslint-friendly-formatter": "^2.0.7",
@@ -26,8 +27,14 @@
     "eslint-plugin-html": "^2.0.0",
     "eslint-plugin-promise": "^3.4.0",
     "eslint-plugin-standard": "^2.0.1",
+    "file-loader": "^0.11.2",
     "husky": "^0.12.0",
-    "nodemon": "^1.11.0"
+    "less": "^2.7.2",
+    "less-loader": "^4.0.4",
+    "nodemon": "^1.11.0",
+    "style-loader": "^0.18.2",
+    "url-loader": "^0.5.9",
+    "webpack": "^3.1.0"
   },
   "dependencies": {
     "art-template": "^4.12.1",
@@ -39,13 +46,14 @@
     "koa-convert": "^1.2.0",
     "koa-generic-session": "^1.11.6",
     "koa-json-error": "^3.1.2",
+    "koa-mount": "^3.0.0",
     "koa-redis": "^3.0.0",
     "koa-router": "^7.2.1",
+    "koa-static": "^4.0.0",
     "lodash": "^4.17.4",
     "request": "^2.81.0",
     "request-promise": "^4.2.1",
     "upyun": "^3.0.1",
-    "urlencode": "^1.1.0",
     "winston": "^2.3.1"
   }
 }
