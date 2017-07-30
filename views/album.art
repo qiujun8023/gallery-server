@@ -1,29 +1,16 @@
 {{extend './base.art'}}
 {{block 'title'}}{{title}}{{/block}}
 {{block 'content'}}
-  {{each data item}}
-    {{if item.type === 'GALLERY'}}
-      <a class="album">
-        <span class="lable">
-          <span class="title"></span>
-        </span>
-        <div class="container">
-          <div class="cropped"></div>
-          <div class="cropped"></div>
-          <div class="cropped"></div>
-        </div>
-      </a>
-    {{else}}
-      <a class="image">
-        <span class="lable">
-          <span class="title"></span>
-        </span>
-        <div class="container">
-          <img src="{{item.url}}">
-        </div>
-      </a>
-    {{/if}}
-  {{/each}}
+  <script>
+    let data = {{@data}}
+    window.onload = function () {
+      initAlbums(data)
+    }
+    window.onresize = function () {
+      initAlbums(data)
+    }
+  </script>
+  <div class="albums" id="albums"></div> 
     <!-- Root element of PhotoSwipe. Must have class pswp. -->
   <div class="pswp" tabindex="-1" role="dialog" aria-hidden="true">
 

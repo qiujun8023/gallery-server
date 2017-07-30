@@ -23,14 +23,15 @@ module.exports = {
   },
 
   upyun: {
-    bucket: 'gallery',
-    operator: 'gallery',
-    password: 'gallery',
-    token: 'toekn', // token 防盗链，未设置则为 null
-    baseUrl: 'http://example.com/'
+    bucket: 'album',
+    operator: 'album',
+    password: 'album',
+    token: 'toekn', // token 防盗链，未设置则为 null,
+    makeThumb: '!/fh/300',
+    baseUrl: 'http://album.example.com/'
   },
 
-  gallery: {
+  albums: {
     '/': {
       name: '这是名称，默认问文件夹名称',
       description: '这是描述，默认为 null',

@@ -6,9 +6,10 @@ const config = require('config')
 const upyun = require('upyun')
 const redis = require('../lib/redis')
 const logger = require('../lib/logger')
-const urlJoin = require('../lib/url_join')
+const {urlJoin} = require('../lib/utils')
 const utils = require('./utils')
 
+const BASE_URL = config.baseUrl + 'album/'
 const MIN_FILE_CACHE_TIME = 600
 const MAX_FILE_CACHE_TIME = 1200
 const MIN_META_CACHE_TIME = 43200
@@ -34,6 +35,11 @@ exports.getFileUrl = function (path) {
 
   path = path.split('/').map(encodeURIComponent).join('/')
   return baseUrl + _.trimStart(path, '/') + query
+}
+
+// 获取缩略图访问地址
+exports.getThumbFileUrl = function (path) {
+  return this.getFileUrl(path + config.upyun.makeThumb)
 }
 
 // 又拍云文件列表缓存时间
@@ -103,7 +109,8 @@ exports.formatFileAsync = async function (info, path) {
     name: info.name,
     meta,
     type: 'IMAGE',
-    url: this.getFileUrl(path)
+    url: this.getFileUrl(path),
+    thumbUrl: this.getThumbFileUrl(path)
   }
 }
 
@@ -111,13 +118,13 @@ exports.formatFileAsync = async function (info, path) {
 exports.formatDirAsync = async function (info, path) {
   // 文件夹基本信息
   info = Object.assign({
-    path,
+    path: BASE_URL + _.trimStart(path, '/'),
     name: info.name,
-    type: 'GALLERY',
+    type: 'ALBUM',
     description: null,
     thumbnails: [],
     question: null
-  }, config.gallery[path] || {})
+  }, config.albums[path] || {})
   info.thumbnails = info.thumbnails.concat([])
   info = _.pick(info, ITEM_FILTER)
 
@@ -129,13 +136,13 @@ exports.formatDirAsync = async function (info, path) {
   // 获取缩略图请求地址
   for (let i = 0; i < info.thumbnails.length; i++) {
     let thumbnailPath = urlJoin(path, info.thumbnails[i])
-    info.thumbnails[i] = this.getFileUrl(thumbnailPath)
+    info.thumbnails[i] = this.getThumbFileUrl(thumbnailPath)
   }
   return info
 }
 
 // 获取图集信息
-exports.getGalleryAsync = async function (remotePath) {
+exports.getAlbumAsync = async function (remotePath) {
   let data = await this.listDirAsync(remotePath)
   for (let i = 0; i < data.length; i++) {
     let path = urlJoin(remotePath, data[i].name)
@@ -152,10 +159,37 @@ exports.getGalleryAsync = async function (remotePath) {
   })
 
   // 图集基本信息
-  let gallery = Object.assign({
+  let album = Object.assign({
     name: remotePath,
     description: null,
     data
-  }, config.gallery[remotePath] || {})
-  return _.pick(gallery, META_FILTER)
+  }, config.albums[remotePath] || {})
+  return _.pick(album, META_FILTER)
+}
+
+exports.getNavbarInfo = function (fullPath) {
+  let navbarPath = ''
+  let pathInfo = _.trim(fullPath, '/').split('/')
+  if (pathInfo.length !== 1 || pathInfo[0]) {
+    pathInfo.unshift('')
+  }
+
+  let res = []
+  let baseUrl = _.trimEnd(BASE_URL, '/')
+  for (let i = 0; i < pathInfo.length; i++) {
+    navbarPath = '/' + pathInfo[i]
+    let url = baseUrl + navbarPath
+    let name = pathInfo[i]
+    if (config.albums[navbarPath]) {
+      name = config.albums[navbarPath].name || name
+    }
+    res.push({url, name})
+  }
+
+  console.log(res)
+  if (!res[0].name || res[0].name === '/') {
+    res[0].name = 'Home'
+  }
+
+  return res
 }
