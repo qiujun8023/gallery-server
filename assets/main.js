@@ -1,6 +1,5 @@
 require('./main.less')
-require('./swipe')
-const $ = require('jquery')
+const pswpInit = require('./pswp.init')
 
 const MAX_ROW_HEIGHT = 200
 const MID_ROW_HEIGHT = 150
@@ -26,18 +25,20 @@ let getAlbumHtml = function (item, width, height) {
 
 let getImageHtml = function (item, width, height) {
   return `
-    <a class="image" style="width: ${width}px; height: ${height}px">
+    <div class="image" data-src="${item.url}"
+      data-size="${item.meta.width}x${item.meta.height}"
+      style="width: ${width}px; height: ${height}px">
       <span class="lable">
         <span class="title">${item.name}</span>
       </span>
       <div class="container">
-        <img src="${item.thumbUrl}" data-src="${item.url}" alt="${item.name}">
+        <img src="${item.thumbUrl}" alt="${item.name}">
       </div>
-    </a>
+    </div>
   `
 }
 
-let addAlbumRowHtml = function (row, rowHeight) {
+let addAlbumRowHtml = function (el, row, rowHeight) {
   let rowHtml = ''
   for (let item of row) {
     if (item.type === 'ALBUM') {
@@ -48,7 +49,7 @@ let addAlbumRowHtml = function (row, rowHeight) {
     }
   }
   rowHtml = `<div class="row" style="height: ${rowHeight}px">${rowHtml}</div>`
-  $('#albums').append(rowHtml)
+  el.innerHTML += rowHtml
 }
 
 let pushRow = function (row, item, clientWidth) {
@@ -68,24 +69,26 @@ let pushRow = function (row, item, clientWidth) {
   return row
 }
 
-let splitRows = function (data, clientWidth) {
+let splitRows = function (el, data, clientWidth) {
   let row = {}
   for (let item of data) {
     row = pushRow(row, item, clientWidth)
     if (row.height < MAX_ROW_HEIGHT) {
-      addAlbumRowHtml(row.data, row.height)
+      addAlbumRowHtml(el, row.data, row.height)
       row = {}
     }
   }
 
   if (row.data && row.data.length) {
     let rowHeight = Math.min(row.height, MID_ROW_HEIGHT)
-    addAlbumRowHtml(row.data, rowHeight)
+    addAlbumRowHtml(el, row.data, rowHeight)
   }
 }
 
-window.initAlbums = function (data) {
-  $('#albums').html('')
+window.initAlbums = function (className, data) {
+  let el = document.getElementsByClassName(className)[0]
+  el.innerHTML = ''
   let {clientWidth} = window.document.body
-  splitRows(data, clientWidth)
+  splitRows(el, data, clientWidth)
+  pswpInit('.' + className)
 }
