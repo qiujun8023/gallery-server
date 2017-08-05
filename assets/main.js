@@ -23,7 +23,36 @@ let getAlbumHtml = function (item, width, height) {
   `
 }
 
+let getExifInfo = function (meta) {
+  let info = []
+  let {FNumber, ShutterSpeedValue, ISOSpeedRatings} = meta.EXIF
+  if (FNumber) {
+    FNumber = FNumber.split('/')
+    if (FNumber.length === 2) {
+      info.push('f/' + FNumber[0] / FNumber[1])
+    }
+  }
+  if (ShutterSpeedValue) {
+    ShutterSpeedValue = ShutterSpeedValue.split('/')
+    if (ShutterSpeedValue.length === 2) {
+      info.push('1/' + (2 ^ (ShutterSpeedValue[0] / ShutterSpeedValue[1])) + 's')
+    }
+  }
+  if (ISOSpeedRatings) {
+    info.push('ISO' + ISOSpeedRatings)
+  }
+  if (!info.length) {
+    return 'Unknown'
+  }
+  return info.join(', ')
+}
+
 let getImageHtml = function (item, width, height) {
+  item.meta.EXIF = item.meta.EXIF || {}
+  let name = item.name
+  let model = item.meta.EXIF.Model || 'Unknown'
+  let info = getExifInfo(item.meta)
+  let time = item.meta.EXIF.DateTimeOriginal || 'Unknown'
   return `
     <div class="image" data-src="${item.url}"
       data-size="${item.meta.width}x${item.meta.height}"
@@ -33,6 +62,24 @@ let getImageHtml = function (item, width, height) {
       </span>
       <div class="container">
         <img src="${item.thumbUrl}" alt="${item.name}">
+      </div>
+      <div class="extra">
+        <p class="exif">
+          <b><i class="fa fa-camera"></i></b>
+          <span>${model}</span>
+        </p>
+        <p class="exif">
+          <b><i class="fa fa-image"></i></b>
+          <span>${name}</span>
+        </p>
+        <p class="exif">
+          <b><i class="fa fa-film"></i></b>
+          <span>${info}</span>
+        </p>
+        <p class="exif">
+          <b><i class="fa fa-clock-o"></i></b>
+          <span>${time}</span>
+        </p>
       </div>
     </div>
   `

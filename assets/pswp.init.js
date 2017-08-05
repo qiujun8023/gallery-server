@@ -25,7 +25,7 @@ let initPhotoSwipeFromDOM = function (gallerySelector) {
       let item = {
         src: linkEl.getAttribute('data-src'),
         msrc: linkEl.getElementsByTagName('img')[0].getAttribute('src'),
-        title: linkEl.getElementsByClassName('title')[0].innerHTML,
+        title: linkEl.getElementsByClassName('extra')[0].innerHTML,
         w: parseInt(size[0], 10),
         h: parseInt(size[1], 10),
         el: linkEl
