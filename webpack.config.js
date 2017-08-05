@@ -9,6 +9,14 @@ module.exports = {
   },
   module: {
     rules: [{
+      test: /\.js$/,
+      use: [{
+        loader: 'babel-loader',
+        query: {
+          presets: ['es2015']
+        }
+      }]
+    }, {
       test: /\.(css|less)$/,
       use: ['style-loader', 'css-loader', 'less-loader']
     }, {

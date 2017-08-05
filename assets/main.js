@@ -28,7 +28,7 @@ let getImageHtml = function (item, width, height) {
   return `
     <a class="image" style="width: ${width}px; height: ${height}px">
       <span class="lable">
-        <span class="title"></span>
+        <span class="title">${item.name}</span>
       </span>
       <div class="container">
         <img src="${item.thumbUrl}" data-src="${item.url}" alt="${item.name}">
