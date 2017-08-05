@@ -15,7 +15,7 @@ const MAX_FILE_CACHE_TIME = 1200
 const MIN_META_CACHE_TIME = 43200
 const MAX_META_CACHE_TIME = 86400
 const META_FILTER = ['name', 'description', 'data']
-const ITEM_FILTER = ['path', 'name', 'type', 'description', 'thumbnails', 'question']
+const ITEM_FILTER = ['url', 'path', 'name', 'type', 'description', 'thumbnails', 'question']
 const UPYUN_LAST_PAGE_ITER = 'g2gCZAAEbmV4dGQAA2VvZg'
 
 // 创建 upyun sdk 实例
@@ -118,12 +118,13 @@ exports.formatFileAsync = async function (info, path) {
 exports.formatDirAsync = async function (info, path) {
   // 文件夹基本信息
   info = Object.assign({
-    path: BASE_URL + _.trimStart(path, '/'),
+    path,
     name: info.name,
     type: 'ALBUM',
     description: null,
     thumbnails: [],
-    question: null
+    question: null,
+    url: BASE_URL + _.trimStart(path, '/')
   }, config.albums[path] || {})
   info.thumbnails = info.thumbnails.concat([])
   info = _.pick(info, ITEM_FILTER)
@@ -186,7 +187,6 @@ exports.getNavbarInfo = function (fullPath) {
     res.push({url, name})
   }
 
-  console.log(res)
   if (!res[0].name || res[0].name === '/') {
     res[0].name = 'Home'
   }

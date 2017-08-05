@@ -32,7 +32,7 @@ module.exports = {
   },
 
   albums: {
-    '/': {
+    '/example': {
       name: '这是名称，默认问文件夹名称',
       description: '这是描述，默认为 null',
       thumbnails: [
