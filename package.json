@@ -14,6 +14,7 @@
   "scripts": {
     "dev": "nodemon -e js,json,art app.js",
     "cron": "nodemon -e js,json,art cron.js",
+    "build": "webpack -p",
     "lint": "eslint --ignore-path .lintignore .",
     "start": "pm2 start pm2.json",
     "postmerge": "npm install"

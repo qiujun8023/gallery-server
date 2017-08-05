@@ -1,7 +1,7 @@
-require('./photoSwipe/photoswipe.css')
-require('./photoSwipe/default-skin/default-skin.css')
-const PhotoSwipe = require('./photoSwipe/photoswipe.min')
-const PhotoSwipeUIDefault = require('./photoSwipe/photoswipe-ui-default')
+import './photoSwipe/photoswipe.css'
+import './photoSwipe/default-skin/default-skin.css'
+import PhotoSwipe from './photoSwipe/photoswipe.min'
+import PhotoSwipeUIDefault from './photoSwipe/photoswipe-ui-default'
 
 let initPhotoSwipeFromDOM = function (gallerySelector) {
   // parse slide data (url, title, size ...) from DOM elements
@@ -143,7 +143,7 @@ let initPhotoSwipeFromDOM = function (gallerySelector) {
         // parse real index when custom PIDs are used
         // http://photoswipe.com/documentation/faq.html#custom-pid-in-url
         for (let j = 0; j < items.length; j++) {
-          if (items[j].pid == index) {
+          if (Number(items[j].pid) === Number(index)) {
             options.index = j
             break
           }

@@ -1,6 +1,5 @@
 'use strict'
 
-const _ = require('lodash')
 const router = require('koa-router')()
 const service = require('../service')
 const album = require('../views/album')

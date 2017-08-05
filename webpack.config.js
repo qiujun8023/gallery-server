@@ -23,7 +23,7 @@ module.exports = {
       test: /\.(woff|svg|eot|ttf)\??.*$/,
       use: 'url-loader?limit=81920&name=fonts/[name]-[hash:6].[ext]'
     }, {
-      test: /\.(gif|jpg|png|svg)\??.*$/,
+      test: /\.(gif|jpg|png)\??.*$/,
       use: 'file-loader?name=images/[name]-[hash:6].[ext]'
     }]
   },
