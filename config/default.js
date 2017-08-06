@@ -5,6 +5,8 @@ const path = require('path')
 module.exports = {
   host: 'localhost',
   port: '8005',
+
+  title: 'xx相册', // 网页标题
   baseUrl: 'http://localhost:8005/',
 
   env: 'development',

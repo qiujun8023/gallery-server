@@ -1,5 +1,3 @@
-import './photoSwipe/photoswipe.css'
-import './photoSwipe/default-skin/default-skin.css'
 import PhotoSwipe from './photoSwipe/photoswipe.min'
 import PhotoSwipeUIDefault from './photoSwipe/photoswipe-ui-default'
 

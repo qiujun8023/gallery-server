@@ -1,0 +1,9 @@
+{{extend './base.art'}}
+{{block 'title'}}{{title}}{{/block}}
+{{block 'content'}}
+<script>
+  window.onload = function () {
+    questions({{@data}})("{{path}}", true)
+  }
+</script>
+{{/block}}

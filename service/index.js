@@ -9,13 +9,20 @@ const logger = require('../lib/logger')
 const {urlJoin} = require('../lib/utils')
 const utils = require('./utils')
 
-const BASE_URL = config.baseUrl + 'album/'
+const BASE_URL = config.baseUrl
 const MIN_FILE_CACHE_TIME = 600
 const MAX_FILE_CACHE_TIME = 1200
 const MIN_META_CACHE_TIME = 43200
 const MAX_META_CACHE_TIME = 86400
-const META_FILTER = ['name', 'description', 'data']
-const ITEM_FILTER = ['url', 'path', 'name', 'type', 'description', 'thumbnails', 'question']
+const ALBUM_FILTER = ['name', 'description', 'data']
+const IMAGE_FILTER = [
+  'url', 'path', 'name', 'type',
+  'description', 'thumbnails', 'question'
+]
+const EXIF_FILTER = [
+  'Model', 'FNumber', 'ShutterSpeedValue',
+  'ISOSpeedRatings', 'DateTimeOriginal'
+]
 const UPYUN_LAST_PAGE_ITER = 'g2gCZAAEbmV4dGQAA2VvZg'
 
 // 创建 upyun sdk 实例
@@ -81,7 +88,17 @@ exports.listDirAsync = async function (remotePath) {
 // 从又拍云获取缩略图列表
 exports.findThumbnailsAsync = async function (remotePath) {
   let files = await this.listDirAsync(remotePath)
-  return _.map(files.slice(0, 4), 'name')
+
+  let thumbnails = []
+  for (let file of files) {
+    if (file.type === 'N') {
+      thumbnails.push(file.name)
+    }
+    if (thumbnails.length >= 4) {
+      break
+    }
+  }
+  return thumbnails
 }
 
 // 获取图片元数据
@@ -94,6 +111,8 @@ exports.getMetaAsync = async function (path, url) {
 
   logger.info('request upyun to fetch meta: %s', path)
   let meta = await rp({url, json: true})
+  meta.EXIF = _.pick(meta.EXIF || {}, EXIF_FILTER)
+
   let cacheTime = this.getMetaCacheTime()
   logger.info('set meta to cache, key: %s, ttl: ', cacheKey, cacheTime)
   await redis.setex(cacheKey, cacheTime, JSON.stringify(meta))
@@ -126,8 +145,8 @@ exports.formatDirAsync = async function (info, path) {
     question: null,
     url: BASE_URL + _.trimStart(path, '/')
   }, config.albums[path] || {})
-  info.thumbnails = info.thumbnails.concat([])
-  info = _.pick(info, ITEM_FILTER)
+  info.thumbnails = info.thumbnails.slice(0, 4)
+  info = _.pick(info, IMAGE_FILTER)
 
   // 获取缩略图
   if (!info.thumbnails.length) {
@@ -161,11 +180,11 @@ exports.getAlbumAsync = async function (remotePath) {
 
   // 图集基本信息
   let album = Object.assign({
-    name: remotePath,
+    name: remotePath.split('/').pop(),
     description: null,
     data
   }, config.albums[remotePath] || {})
-  return _.pick(album, META_FILTER)
+  return _.pick(album, ALBUM_FILTER)
 }
 
 exports.getNavbarInfo = function (fullPath) {
