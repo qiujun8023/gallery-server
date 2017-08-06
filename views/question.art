@@ -3,7 +3,7 @@
 {{block 'content'}}
 <script>
   window.onload = function () {
-    questions({{@data}})("{{path}}", true)
+    questions({{@data}})("{{path}}", true);
   }
 </script>
 {{/block}}
