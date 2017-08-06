@@ -49,6 +49,7 @@ body {
   .row {
     margin-bottom: 4px;
     .album, .image {
+      cursor: pointer;
       position: relative;
       display: inline-block;
       height: auto;
@@ -84,10 +85,6 @@ body {
       .container {
         width: 100%;
         height: 100%;
-        img {
-          width: 100%;
-          height: 100%;
-        }
       }
     }
     .album {
@@ -155,6 +152,24 @@ body {
       &:hover {
         .lable {
           opacity: 1;
+        }
+      }
+      .container {
+        font-size: 14px;
+        img {
+          width: 100%;
+          height: 100%;
+          display: none;
+          opacity: 0;
+          transition: opacity 200ms linear;
+        }
+        i.fa {
+          color: #666;
+          position: absolute;
+          top: 50%;
+          left: 50%;
+          margin-top: -14px;
+          margin-left: -18px;
         }
       }
       .extra {
