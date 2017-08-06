@@ -1,7 +1,6 @@
 'use strict'
 
 const session = require('koa-generic-session')
-const convert = require('koa-convert')
 const RedisStore = require('koa-redis')
 const redis = require('../lib/redis')
 
@@ -13,4 +12,4 @@ let options = {
   prefix: 'session:'
 }
 
-module.exports = () => convert(session(options))
+module.exports = () => session(options)

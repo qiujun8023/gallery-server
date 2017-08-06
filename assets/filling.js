@@ -212,16 +212,21 @@ let splitRows = function (className, data, clientWidth) {
   el.innerHTML = ''
 
   let row = {}
+  let previousRow = {}
   for (let item of data) {
     row = pushRow(row, item, clientWidth)
     if (row.height < MAX_ROW_HEIGHT) {
       addAlbumRowHtml(el, row.data, row.height)
+      previousRow = row
       row = {}
     }
   }
 
   if (row.data && row.data.length) {
     let rowHeight = Math.min(row.height, MID_ROW_HEIGHT)
+    if (previousRow && previousRow.height) {
+      rowHeight = Math.max(rowHeight, previousRow.height)
+    }
     addAlbumRowHtml(el, row.data, rowHeight)
   }
   window.askQuestion = questions(data)
