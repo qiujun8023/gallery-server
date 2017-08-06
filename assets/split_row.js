@@ -5,6 +5,12 @@ let getMarginWidth = function (count) {
   return 10 + count * 4
 }
 
+let htmlToElement = function (html) {
+  let template = document.createElement('template')
+  template.innerHTML = html
+  return template.content.firstChild
+}
+
 let getAlbumHtml = function (item, width, height) {
   let thumbHtml = ''
   for (let thumbnail of item.thumbnails) {
@@ -59,7 +65,10 @@ let getImageHtml = function (item, width, height) {
       </span>
       <div class="container">
         <img data-src="${item.thumbUrl}" alt="${item.name}">
-        <i class="fa fa-spinner fa-pulse fa-2x fa-fw"></i>
+        <div class="spinner">
+          <div class="double-bounce1"></div>
+          <div class="double-bounce2"></div>
+        </div>
       </div>
       <div class="extra">
         <p class="exif">
@@ -94,7 +103,7 @@ let addAlbumRowHtml = function (el, row, rowHeight) {
     }
   }
   rowHtml = `<div class="row" style="height: ${rowHeight}px">${rowHtml}</div>`
-  el.innerHTML += rowHtml
+  el.appendChild(htmlToElement(rowHtml))
 }
 
 let pushRow = function (row, item, clientWidth) {
