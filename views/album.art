@@ -65,18 +65,5 @@
 
     </div>
   </div>
-  <script>
-  var data = {{@data}};
-  window.onload = function () {
-    let className = 'albums';
-    var width = window.document.body.clientWidth;
-    initAlbums(className, data);
-    window.onresize = function () {
-      var newWidth = window.document.body.clientWidth;
-      if (newWidth !== width) {
-        initAlbums(className, data);
-      } 
-    }
-  }
-  </script>
+  <script>window.onload = function () {init({{@album}})}</script>
 {{/block}}

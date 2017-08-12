@@ -18,7 +18,7 @@ module.exports = {
       }],
       exclude: [
         path.resolve(__dirname, 'node_modules')
-      ],
+      ]
     }, {
       test: /\.(css|less)$/,
       use: ['style-loader', 'css-loader', 'less-loader']

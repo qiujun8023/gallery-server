@@ -2,15 +2,30 @@ import inView from 'in-view'
 
 let onView = function (el, iconSelector, imgSelector) {
   let imgEl = el.querySelector(imgSelector)
-  if (!imgEl || imgEl.getAttribute('src')) {
+  let iconEl = el.querySelector(iconSelector)
+  if (!imgEl || imgEl.getAttribute('data-lazyload')) {
     return
   }
-  imgEl.setAttribute('src', imgEl.getAttribute('data-src'))
-  imgEl.onload = function () {
-    let iconEl = el.querySelector(iconSelector)
+
+  imgEl.setAttribute('data-lazyload', '1')
+  let onload = function () {
     iconEl.style.display = 'none'
     imgEl.style.display = 'block'
     imgEl.style.opacity = 1
+    if (type !== 'src') {
+      imgEl.style.backgroundImage = `url(${src})`
+    }
+  }
+
+  let src = imgEl.getAttribute('data-src')
+  let type = imgEl.getAttribute('data-type') || 'src'
+  if (type !== 'src') {
+    let img = new window.Image()
+    img.onload = onload
+    img.src = src
+  } else {
+    imgEl.onload = onload
+    imgEl.setAttribute('src', src)
   }
 }
 

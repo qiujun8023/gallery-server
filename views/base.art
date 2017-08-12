@@ -6,7 +6,7 @@
   <script src="/static/bundle.js"></script>
 </head>
 <body>
-  <div class="navbar">
+  <div class="navbar" id="navbar">
     <div class="breadcrumb">
       {{each navbar}}
         <div class="item">
@@ -22,9 +22,6 @@
         </div>
       {{/each}}
     </div>
-    {{if description}}
-      <div class="description">{{description}}</div>
-    {{/if}}
   </div>
   {{block 'content'}}{{/block}}
 </body>

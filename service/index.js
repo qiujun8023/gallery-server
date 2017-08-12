@@ -1,93 +1,19 @@
 'use strict'
 
 const _ = require('lodash')
-const rp = require('request-promise')
 const config = require('config')
-const upyun = require('upyun')
-const redis = require('../lib/redis')
-const logger = require('../lib/logger')
+const upyun = require('./upyun')
 const {urlJoin} = require('../lib/utils')
-const utils = require('./utils')
 
 const BASE_URL = config.baseUrl
-const MIN_FILE_CACHE_TIME = 600
-const MAX_FILE_CACHE_TIME = 1200
-const MIN_META_CACHE_TIME = 43200
-const MAX_META_CACHE_TIME = 86400
-const ALBUM_FILTER = ['name', 'description', 'data']
-const IMAGE_FILTER = [
+const ALBUM_FILTER = [
   'url', 'path', 'name', 'type',
   'description', 'thumbnails', 'question'
 ]
-const EXIF_FILTER = [
-  'Model', 'FNumber', 'ShutterSpeedValue',
-  'ISOSpeedRatings', 'DateTimeOriginal'
-]
-const UPYUN_LAST_PAGE_ITER = 'g2gCZAAEbmV4dGQAA2VvZg'
-
-// 创建 upyun sdk 实例
-let {bucket, operator, password} = config.upyun
-let clientConfig = new upyun.Bucket(bucket, operator, password)
-let client = new upyun.Client(clientConfig)
-
-// 获取图片访问地址
-exports.getFileUrl = function (path) {
-  let {baseUrl, token} = config.upyun
-  let query = ''
-  if (token) {
-    let etime = Math.round(Date.now() / 1000) + 1800
-    let sign = utils.md5(`${token}&${etime}&${path}`).substr(12, 8)
-    query = `?_upt=${sign}${etime}`
-  }
-
-  path = path.split('/').map(encodeURIComponent).join('/')
-  return baseUrl + _.trimStart(path, '/') + query
-}
-
-// 获取缩略图访问地址
-exports.getThumbFileUrl = function (path) {
-  return this.getFileUrl(path + config.upyun.makeThumb)
-}
-
-// 又拍云文件列表缓存时间
-exports.getFileCacheTime = function () {
-  return _.random(MIN_FILE_CACHE_TIME, MAX_META_CACHE_TIME)
-}
-
-// 图片元信息缓存时间
-exports.getMetaCacheTime = function () {
-  return _.random(MIN_META_CACHE_TIME, MAX_FILE_CACHE_TIME)
-}
-
-// 从又拍云获取文件列表
-exports.listDirAsync = async function (remotePath) {
-  let cacheKey = 'files:' + utils.md5(remotePath)
-  let cacheData = await redis.get(cacheKey)
-  if (cacheData) {
-    return JSON.parse(cacheData)
-  }
-
-  let iter
-  let data = []
-  do {
-    let res = await client.listDir(remotePath, {iter: iter, limit: 1000})
-    if (res) {
-      data = data.concat(res.files)
-      iter = res.next
-    }
-  } while (iter && iter !== UPYUN_LAST_PAGE_ITER)
-
-  logger.info('request upyun to list dir: %s', remotePath)
-  data = utils.sortFiles(utils.filterImg(data))
-  let cacheTime = this.getFileCacheTime()
-  logger.info('set list to cache, key: %s, ttl: ', cacheKey, cacheTime)
-  await redis.setex(cacheKey, cacheTime, JSON.stringify(data))
-  return data
-}
 
 // 从又拍云获取缩略图列表
 exports.findThumbnailsAsync = async function (remotePath) {
-  let files = await this.listDirAsync(remotePath)
+  let files = await upyun.listDirAsync(remotePath)
 
   let thumbnails = []
   for (let file of files) {
@@ -101,35 +27,17 @@ exports.findThumbnailsAsync = async function (remotePath) {
   return thumbnails
 }
 
-// 获取图片元数据
-exports.getMetaAsync = async function (path, url) {
-  let cacheKey = 'meta:' + utils.md5(path)
-  let cacheData = await redis.get(cacheKey)
-  if (cacheData) {
-    return JSON.parse(cacheData)
-  }
-
-  logger.info('request upyun to fetch meta: %s', path)
-  let meta = await rp({url, json: true})
-  meta.EXIF = _.pick(meta.EXIF || {}, EXIF_FILTER)
-
-  let cacheTime = this.getMetaCacheTime()
-  logger.info('set meta to cache, key: %s, ttl: ', cacheKey, cacheTime)
-  await redis.setex(cacheKey, cacheTime, JSON.stringify(meta))
-  return meta
-}
-
 // 格式化文件信息
 exports.formatFileAsync = async function (info, path) {
-  let metaUrl = this.getFileUrl(path + '!/meta')
-  let meta = await this.getMetaAsync(path, metaUrl)
+  let metaUrl = upyun.getImageUrl(path + '!/meta')
+  let meta = await upyun.getMetaAsync(path, metaUrl)
   return {
     path,
     name: info.name,
     meta,
     type: 'IMAGE',
-    url: this.getFileUrl(path),
-    thumbUrl: this.getThumbFileUrl(path)
+    url: upyun.getImageUrl(path),
+    thumbnailUrl: upyun.getThumbnailUrl(path)
   }
 }
 
@@ -146,7 +54,7 @@ exports.formatDirAsync = async function (info, path) {
     url: BASE_URL + _.trimStart(path, '/')
   }, config.albums[path] || {})
   info.thumbnails = info.thumbnails.slice(0, 4)
-  info = _.pick(info, IMAGE_FILTER)
+  info = _.pick(info, ALBUM_FILTER)
 
   // 获取缩略图
   if (!info.thumbnails.length) {
@@ -156,14 +64,19 @@ exports.formatDirAsync = async function (info, path) {
   // 获取缩略图请求地址
   for (let i = 0; i < info.thumbnails.length; i++) {
     let thumbnailPath = urlJoin(path, info.thumbnails[i])
-    info.thumbnails[i] = this.getThumbFileUrl(thumbnailPath)
+    info.thumbnails[i] = upyun.getThumbnailUrl(thumbnailPath)
   }
   return info
 }
 
 // 获取图集信息
 exports.getAlbumAsync = async function (remotePath) {
-  let data = await this.listDirAsync(remotePath)
+  // 图集基本信息
+  let name = remotePath.split('/').pop()
+  let album = await this.formatDirAsync({name}, remotePath)
+
+  // 获取图集信息
+  let data = await upyun.listDirAsync(remotePath)
   for (let i = 0; i < data.length; i++) {
     let path = urlJoin(remotePath, data[i].name)
     if (data[i].type === 'F') {
@@ -174,17 +87,11 @@ exports.getAlbumAsync = async function (remotePath) {
   }
 
   // 删除空图集
-  data = data.filter((item) => {
+  album.data = data.filter((item) => {
     return item.type === 'IMAGE' || Boolean(item.thumbnails.length)
   })
 
-  // 图集基本信息
-  let album = Object.assign({
-    name: remotePath.split('/').pop(),
-    description: null,
-    data
-  }, config.albums[remotePath] || {})
-  return _.pick(album, ALBUM_FILTER)
+  return album
 }
 
 exports.getNavbarInfo = function (fullPath) {

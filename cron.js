@@ -8,12 +8,11 @@ const service = require('./service')
 const CRON_TIME = '0 */5 * * * *'
 
 let cacheAlbum = async function (remotePath) {
-  let data = await service.getAlbumAsync(remotePath)
-  for (let item of data.data) {
-    if (item.type !== 'ALBUM') {
-      continue
+  let album = await service.getAlbumAsync(remotePath)
+  for (let item of album.data) {
+    if (item.type === 'ALBUM') {
+      await cacheAlbum(item.path)
     }
-    await cacheAlbum(item.path)
   }
 }
 

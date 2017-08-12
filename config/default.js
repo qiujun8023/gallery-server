@@ -29,7 +29,7 @@ module.exports = {
     operator: 'album',
     password: 'album',
     token: 'toekn', // token 防盗链，未设置则为 null,
-    makeThumb: '!/fh/300',
+    makeThumbnail: '!/fh/300',
     baseUrl: 'http://album.example.com/'
   },
 

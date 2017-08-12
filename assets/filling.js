@@ -1,27 +1,8 @@
 import swal from 'sweetalert'
+import {post, htmlToElement} from './utils'
 
 const MAX_ROW_HEIGHT = 200
 const MID_ROW_HEIGHT = 150
-
-// 发起 Post 请求，用于提交问题答案
-let post = function (path, params) {
-  let form = document.createElement('form')
-  form.setAttribute('method', 'post')
-  form.setAttribute('action', path)
-
-  for (let key in params) {
-    if (params.hasOwnProperty(key)) {
-      let field = document.createElement('input')
-      field.setAttribute('type', 'hidden')
-      field.setAttribute('name', key)
-      field.setAttribute('value', params[key])
-      form.appendChild(field)
-    }
-  }
-
-  document.body.appendChild(form)
-  form.submit()
-}
 
 // 输入问题答案，闭包用于保存数据
 let questions = function (data) {
@@ -33,18 +14,26 @@ let questions = function (data) {
     albums[item.path] = item
   }
 
-  return function (path, force = false) {
+  return function (path, back = false) {
     swal({
       title: albums[path].question,
       type: 'input',
-      showCancelButton: !force,
+      showCancelButton: true,
       closeOnConfirm: false,
-      allowOutsideClick: !force,
+      closeOnCancel: !back,
+      allowOutsideClick: !back,
       showLoaderOnConfirm: true,
       animation: 'pop',
+      confirmButtonText: '确认',
+      cancelButtonText: back ? '返回' : '取消',
       inputPlaceholder: '请输入答案，正确即可访问'
     }, function (answer) {
-      if (!answer) {
+      if (answer === false) {
+        if (back) {
+          window.history.back()
+        }
+        return false
+      } else if (!answer) {
         swal.showInputError('答案不能为空')
         return false
       }
@@ -59,18 +48,19 @@ let getMarginWidth = function (count) {
   return 10 + count * 4
 }
 
-// 将 HTML 装换为DOM元素
-let htmlToElement = function (html) {
-  let template = document.createElement('template')
-  template.innerHTML = html
-  return template.content.firstChild
-}
-
 // 生成单个相册的HTML代码
 let getAlbumHtml = function (item, width, height) {
   let thumbHtml = ''
   for (let thumbnail of item.thumbnails) {
-    thumbHtml += `<div class="cropped" style="background-image: url('${thumbnail}')"></div>`
+    thumbHtml += `
+      <div class="cover">
+        <div class="spinner">
+          <div class="double-bounce1"></div>
+          <div class="double-bounce2"></div>
+        </div>
+        <div class="cropped" data-src="${thumbnail}" data-type="bg"></div>
+      </div>
+    `
   }
 
   // 私有相册，需要回答问题后访问
@@ -145,7 +135,7 @@ let getImageHtml = function (item, width, height) {
         <span class="title">${item.name}</span>
       </span>
       <div class="container">
-        <img data-src="${item.thumbUrl}" alt="${item.name}">
+        <img data-src="${item.thumbnailUrl}" alt="${item.name}">
       </div>
       <div class="extra">
         <p class="exif">
@@ -232,5 +222,13 @@ let splitRows = function (className, data, clientWidth) {
   window.askQuestion = questions(data)
 }
 
-window.questions = questions
-export default splitRows
+let init = function (className, album, clientWidth) {
+  if (album.question) {
+    questions([album])(album.path, true)
+    return
+  }
+
+  splitRows(className, album.data, clientWidth)
+}
+
+export default init
