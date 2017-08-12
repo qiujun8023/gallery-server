@@ -21,7 +21,7 @@ module.exports = {
       ]
     }, {
       test: /\.(css|less)$/,
-      use: ['style-loader', 'css-loader', 'less-loader']
+      use: ['style-loader', 'css-loader', 'postcss-loader', 'less-loader']
     }, {
       test: /\.(woff|svg|eot|ttf)\??.*$/,
       use: 'url-loader?limit=81920&name=fonts/[name]-[hash:6].[ext]'
