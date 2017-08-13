@@ -8,8 +8,8 @@ const redis = require('../lib/redis')
 const logger = require('../lib/logger')
 const utils = require('./utils')
 
-const MIN_FILE_CACHE_TIME = 600
-const MAX_FILE_CACHE_TIME = 1200
+const MIN_FILE_CACHE_TIME = 300
+const MAX_FILE_CACHE_TIME = 600
 const MIN_META_CACHE_TIME = 43200
 const MAX_META_CACHE_TIME = 86400
 

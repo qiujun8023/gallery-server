@@ -5,7 +5,7 @@ const logger = require('./lib/logger')
 const service = require('./service')
 
 // 定义 Cron 执行频率
-const CRON_TIME = '0 */5 * * * *'
+const CRON_TIME = '0 */2 * * * *'
 
 let cacheAlbum = async function (remotePath) {
   let album = await service.getAlbumAsync(remotePath)
