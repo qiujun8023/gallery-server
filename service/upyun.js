@@ -8,8 +8,8 @@ const redis = require('../lib/redis')
 const logger = require('../lib/logger')
 const utils = require('./utils')
 
-const MIN_FILE_CACHE_TIME = 300
-const MAX_FILE_CACHE_TIME = 600
+const MIN_IMAGE_CACHE_TIME = 300
+const MAX_IMAGE_CACHE_TIME = 600
 const MIN_META_CACHE_TIME = 43200
 const MAX_META_CACHE_TIME = 86400
 
@@ -58,12 +58,12 @@ exports.getThumbnailUrl = function (path) {
 
 // 又拍云文件列表缓存时间
 exports.getImageCacheTime = function () {
-  return _.random(MIN_FILE_CACHE_TIME, MAX_META_CACHE_TIME)
+  return _.random(MIN_IMAGE_CACHE_TIME, MAX_IMAGE_CACHE_TIME)
 }
 
 // 图片元信息缓存时间
 exports.getMetaCacheTime = function () {
-  return _.random(MIN_META_CACHE_TIME, MAX_FILE_CACHE_TIME)
+  return _.random(MIN_META_CACHE_TIME, MAX_META_CACHE_TIME)
 }
 
 // 从又拍云获取文件列表

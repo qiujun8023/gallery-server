@@ -26,8 +26,14 @@ module.exports = {
       test: /\.(woff|svg|eot|ttf)\??.*$/,
       use: 'url-loader?limit=81920&name=fonts/[name]-[hash:6].[ext]'
     }, {
+      test: /favicon\.(png|ico|icon)$/,
+      use: 'file-loader?name=images/[name].[ext]'
+    }, {
       test: /\.(gif|jpg|png)\??.*$/,
-      use: 'file-loader?name=images/[name]-[hash:6].[ext]'
+      use: 'file-loader?name=images/[name]-[hash:6].[ext]',
+      exclude: [
+        /favicon\.(png|ico|icon)$/
+      ]
     }]
   },
   watch: true

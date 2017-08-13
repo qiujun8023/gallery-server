@@ -1,4 +1,5 @@
 import './main.less'
+import './images/favicon.png'
 import filling from './filling'
 import pswpInit from './pswp.init'
 import lazyload from './lazyload'
