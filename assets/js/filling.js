@@ -1,52 +1,4 @@
-import swal from 'sweetalert'
-import {post, htmlToElement} from './utils'
-
-const MAX_ROW_HEIGHT = 200
-const MID_ROW_HEIGHT = 150
-
-// 输入问题答案，闭包用于保存数据
-let questions = function (data) {
-  let albums = {}
-  for (let item of data) {
-    if (item.type !== 'ALBUM') {
-      continue
-    }
-    albums[item.path] = item
-  }
-
-  return function (path, back = false) {
-    swal({
-      title: albums[path].question,
-      type: 'input',
-      showCancelButton: true,
-      closeOnConfirm: false,
-      closeOnCancel: !back,
-      allowOutsideClick: !back,
-      showLoaderOnConfirm: true,
-      animation: 'pop',
-      confirmButtonText: '确认',
-      cancelButtonText: back ? '返回' : '取消',
-      inputPlaceholder: '请输入答案，正确即可访问'
-    }, function (answer) {
-      if (answer === false) {
-        if (back) {
-          window.history.back()
-        }
-        return false
-      } else if (!answer) {
-        swal.showInputError('答案不能为空')
-        return false
-      }
-
-      post(albums[path].url, {answer})
-    })
-  }
-}
-
-// 获取相册中 Margin 所占用的宽度
-let getMarginWidth = function (count) {
-  return 10 + count * 4
-}
+import {htmlToElement} from './utils'
 
 // 生成单个相册的HTML代码
 let getAlbumHtml = function (item, width, height) {
@@ -160,7 +112,7 @@ let getImageHtml = function (item, width, height) {
 }
 
 // 生成单行HTML代码
-let addAlbumRowHtml = function (el, row, rowHeight) {
+let filling = function (el, row, rowHeight) {
   let rowHtml = ''
   for (let item of row) {
     if (item.type === 'ALBUM') {
@@ -174,61 +126,4 @@ let addAlbumRowHtml = function (el, row, rowHeight) {
   el.appendChild(htmlToElement(rowHtml))
 }
 
-// 将 item 添加到 row
-let pushRow = function (row, item, clientWidth) {
-  row = Object.assign({
-    data: [],
-    ratio: 0,
-    height: 0
-  }, row || {})
-  row.data = row.data.concat([])
-  row.data.push(item)
-  if (item.type === 'ALBUM') {
-    row.ratio += 1
-  } else {
-    row.ratio += item.meta.width / item.meta.height
-  }
-  row.height = (clientWidth - getMarginWidth(row.data.length)) / row.ratio
-  return row
-}
-
-// 将数据分割成每行
-let splitRows = function (className, data, clientWidth) {
-  let els = document.getElementsByClassName(className)
-  if (!els || !els.length) {
-    return false
-  }
-  let el = els[0]
-  el.innerHTML = ''
-
-  let row = {}
-  let previousRow = {}
-  for (let item of data) {
-    row = pushRow(row, item, clientWidth)
-    if (row.height < MAX_ROW_HEIGHT) {
-      addAlbumRowHtml(el, row.data, row.height)
-      previousRow = row
-      row = {}
-    }
-  }
-
-  if (row.data && row.data.length) {
-    let rowHeight = Math.min(row.height, MID_ROW_HEIGHT)
-    if (previousRow && previousRow.height) {
-      rowHeight = Math.max(rowHeight, previousRow.height)
-    }
-    addAlbumRowHtml(el, row.data, rowHeight)
-  }
-  window.askQuestion = questions(data)
-}
-
-let init = function (className, album, clientWidth) {
-  if (album.question) {
-    questions([album])(album.path, true)
-    return
-  }
-
-  splitRows(className, album.data, clientWidth)
-}
-
-export default init
+export default filling

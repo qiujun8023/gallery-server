@@ -1,12 +1,12 @@
 import '../css/main.less'
 import '../img/favicon.png'
-import filling from './filling'
+import draw from './draw'
 import pswpInit from './pswp.init'
 import lazyload from './lazyload'
 import {htmlToElement} from './utils'
 
 let initAlbums = function (album, clientWidth) {
-  filling('albums', album, clientWidth)
+  draw('albums', album, clientWidth)
   pswpInit('.albums')
   lazyload('.albums>.row>.album .cover', '.spinner', '.cropped')
   lazyload('.albums>.row>.image', '.spinner', '.container>img')
