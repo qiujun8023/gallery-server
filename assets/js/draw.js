@@ -1,5 +1,5 @@
 import filling from './filling'
-import question from './question'
+import {getBodyWidth} from './utils'
 
 const MAX_ROW_HEIGHT = 200
 const MID_ROW_HEIGHT = 150
@@ -10,7 +10,7 @@ let getMarginWidth = function (count) {
 }
 
 // 将 item 添加到 row
-let pushRow = function (row, item, clientWidth) {
+let pushRow = function (row, item, bodyWidth) {
   row = Object.assign({
     data: [],
     ratio: 0,
@@ -23,47 +23,35 @@ let pushRow = function (row, item, clientWidth) {
   } else {
     row.ratio += item.meta.width / item.meta.height
   }
-  row.height = (clientWidth - getMarginWidth(row.data.length)) / row.ratio
+  row.height = (bodyWidth - getMarginWidth(row.data.length)) / row.ratio
   return row
 }
 
 // 将数据分割成每行
-let splitRows = function (className, data, clientWidth) {
-  let els = document.getElementsByClassName(className)
-  if (!els || !els.length) {
-    return false
-  }
-  let el = els[0]
+let draw = function (el, data, bodyWidth) {
   el.innerHTML = ''
 
   let row = {}
-  let previousRow = {}
-  for (let item of data) {
-    row = pushRow(row, item, clientWidth)
+  let previousHeight = 0
+  for (let i = 0; i < data.length; i++) {
+    row = pushRow(row, data[i], bodyWidth)
     if (row.height < MAX_ROW_HEIGHT) {
       filling(el, row.data, row.height)
-      previousRow = row
+      previousHeight = row.height
       row = {}
+    } else if (i + 1 === data.length) {
+      let rowHeight = Math.min(row.height, MID_ROW_HEIGHT)
+      filling(el, row.data, Math.max(rowHeight, previousHeight))
+    } else {
+      continue
+    }
+
+    // 判断浏览器宽度变化
+    let newBodyWidth = getBodyWidth()
+    if (newBodyWidth < bodyWidth) {
+      return draw(el, data, newBodyWidth)
     }
   }
-
-  if (row.data && row.data.length) {
-    let rowHeight = Math.min(row.height, MID_ROW_HEIGHT)
-    if (previousRow && previousRow.height) {
-      rowHeight = Math.max(rowHeight, previousRow.height)
-    }
-    filling(el, row.data, rowHeight)
-  }
-  window.askQuestion = question(data)
 }
 
-let init = function (className, album, clientWidth) {
-  if (album.question) {
-    question([album])(album.path, true)
-    return
-  }
-
-  splitRows(className, album.data, clientWidth)
-}
-
-export default init
+export default draw

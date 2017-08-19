@@ -1,9 +1,9 @@
 import PhotoSwipe from 'photoswipe/dist/photoswipe.min'
 import PhotoSwipeUIDefault from 'photoswipe/dist/photoswipe-ui-default'
 
-let initPhotoSwipeFromDOM = function (gallerySelector) {
+let initPhotoSwipeFromDOM = function (galleryElements) {
   // parse slide data (url, title, size ...) from DOM elements
-  // (children of gallerySelector)
+  // (children of galleryElements)
   let parseThumbnailElements = function (el) {
     let thumbElements = el.querySelectorAll('div.image')
     let numNodes = thumbElements.length
@@ -167,9 +167,6 @@ let initPhotoSwipeFromDOM = function (gallerySelector) {
     let gallery = new PhotoSwipe(pswpElement, PhotoSwipeUIDefault, items, options)
     gallery.init()
   }
-
-  // loop through all gallery elements and bind events
-  let galleryElements = document.querySelectorAll(gallerySelector)
 
   for (let i = 0, l = galleryElements.length; i < l; i++) {
     galleryElements[i].setAttribute('data-pswp-uid', i + 1)

@@ -25,4 +25,9 @@ let htmlToElement = function (html) {
   return child.firstChild
 }
 
-export {post, htmlToElement}
+// 获取可见区域宽度
+let getBodyWidth = function () {
+  return window.document.body.clientWidth
+}
+
+export {post, htmlToElement, getBodyWidth}
