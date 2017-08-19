@@ -40,6 +40,7 @@
     "less": "^2.7.2",
     "less-loader": "^4.0.5",
     "nodemon": "^1.11.0",
+    "photoswipe": "^4.1.2",
     "postcss-loader": "^2.0.6",
     "style-loader": "^0.18.2",
     "sweetalert": "^1.1.3",

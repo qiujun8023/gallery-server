@@ -26,4 +26,3 @@ let htmlToElement = function (html) {
 }
 
 export {post, htmlToElement}
-export default {post, htmlToElement}

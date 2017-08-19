@@ -3,7 +3,7 @@
 const path = require('path')
 
 module.exports = {
-  host: 'localhost',
+  host: '0.0.0.0',
   port: '8005',
 
   title: 'xx相册', // 网页标题

@@ -1,5 +1,5 @@
-import './main.less'
-import './images/favicon.png'
+import '../css/main.less'
+import '../img/favicon.png'
 import filling from './filling'
 import pswpInit from './pswp.init'
 import lazyload from './lazyload'
@@ -30,5 +30,4 @@ let init = function (album) {
   }
 }
 
-window.init = init
 export default init

@@ -1,5 +1,5 @@
-import PhotoSwipe from './vendor/photoSwipe/photoswipe.min'
-import PhotoSwipeUIDefault from './vendor/photoSwipe/photoswipe-ui-default'
+import PhotoSwipe from 'photoswipe/dist/photoswipe.min'
+import PhotoSwipeUIDefault from 'photoswipe/dist/photoswipe-ui-default'
 
 let initPhotoSwipeFromDOM = function (gallerySelector) {
   // parse slide data (url, title, size ...) from DOM elements
