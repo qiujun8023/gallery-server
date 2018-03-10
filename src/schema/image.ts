@@ -1,20 +1,20 @@
 import * as graphql from 'graphql'
 
 import upyun from '../service/upyun'
-import { GalleryImage } from '../types'
+import { GalleryImage, UpYunFileMeta } from '../types'
 
 let imageUrlType = new graphql.GraphQLObjectType({
   name: 'ImageUrl',
   fields: {
     original: {
       type: graphql.GraphQLString,
-      async resolve (path: string) {
+      resolve (path: string): string {
         return upyun.getFileUrl(path)
       }
     },
     thumbnail: {
       type: graphql.GraphQLString,
-      async resolve (path: string) {
+      resolve (path: string): string {
         return upyun.getThumbnailUrl(path)
       }
     }
@@ -50,13 +50,13 @@ export default new graphql.GraphQLObjectType({
     },
     meta: {
       type: imageMetaType,
-      async resolve (image: GalleryImage) {
+      async resolve (image: GalleryImage): Promise<UpYunFileMeta> {
         return upyun.getMetaWithCache(image.path)
       }
     },
     url: {
       type: imageUrlType,
-      resolve (image: GalleryImage) {
+      resolve (image: GalleryImage): string {
         return image.path
       }
     }
