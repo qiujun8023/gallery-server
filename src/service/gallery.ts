@@ -4,15 +4,12 @@ import { pathJoin, isHideFile, isImgFile } from '../lib/utils'
 import upyun from './upyun'
 import {
   AlbumConfig,
-  GalleryType,
-  GalleryItem,
-  GalleryAlbum,
   GalleryImage,
   GalleryAlbumQuestions,
+  GalleryAlbum,
   GalleryAlbumsObject,
   UpYunFile,
-  UpYunFileType,
-  UpYunFileMeta
+  UpYunFileType
 } from '../types'
 
 export class Gallery {
@@ -22,70 +19,96 @@ export class Gallery {
     this.config = this.loadConfig('/', albumConfig, {})
   }
 
-  // 获取完整信息、包括子节点
-  public async getAlbum (path: string): Promise<GalleryAlbum> {
-    let album: GalleryAlbum = await this.getAlbumInfo(path)
-    let items: GalleryItem[] = await this.getItems(path)
-
-    // 删除空子图集
-    items = items.filter((item): boolean => {
-      if (item.type === GalleryType.ALBUM) {
-        if (!(item as GalleryAlbum).thumbnails.length) {
-          return false
-        }
-      }
-      return true
-    })
-
-    return { ...album, items }
+  // 通过路径获取名称
+  public getNameFromPath (path: string) {
+    return path.split('/').pop() || path
   }
 
-  // 通过路径过去名称
-  private getNameFromPath (path: string) {
-    return path.split('/').pop() || path
+  // 获取图集信息
+  public getAlbumInfo (path: string): GalleryAlbum {
+    return {
+      path,
+      name: this.getNameFromPath(path),
+      questions: {},
+      description: null,
+      ...this.config[path] || {}
+    }
+  }
+
+  // 获取图片列表
+  public getImageInfo (path: string): GalleryImage {
+    return {
+      path,
+      name: this.getNameFromPath(path)
+    }
+  }
+
+  // 获取图集中图片列表
+  public async getImages (path: string): Promise<GalleryImage[]> {
+    let files: UpYunFile[] = await this.getFiles(path, this.imageFileFilter)
+    return files.map((file) => this.getImageInfo(pathJoin(path, file.name)))
+  }
+
+  // 获取图集中子图集列表
+  public async getAlbums (path: string): Promise<GalleryAlbum[]> {
+    let files: UpYunFile[] = await this.getFiles(path, this.albumFilter)
+    return files.map((file) => this.getAlbumInfo(pathJoin(path, file.name)))
+  }
+
+  // 获取缩略图
+  public async getThumbnails (path: string): Promise<string[]> {
+    let thumbnails: string[] = []
+
+    // 获取用户配置的缩略图
+    let albumConfig: GalleryAlbum = this.config[path]
+    if (albumConfig) {
+      thumbnails = albumConfig.thumbnails || []
+    }
+
+    // 未设置缩略图则通过又拍云获取
+    if (!thumbnails || !thumbnails.length) {
+      let files: UpYunFile[] = await this.getFiles(path, this.imageFileFilter)
+      thumbnails = files.map((file) => file.name)
+    }
+
+    // 最多获取四个缩略图
+    thumbnails = thumbnails.slice(0, 4)
+    for (let i = 0; i < thumbnails.length; i++) {
+      let thumbnailPath = pathJoin(path, thumbnails[i])
+      thumbnails[i] = upyun.getThumbnailUrl(thumbnailPath)
+    }
+
+    return thumbnails
   }
 
   // 加在配置文件
   private loadConfig (path: string, albumConfig: AlbumConfig, parentQuestions: object): GalleryAlbumsObject {
-    // 生成相册问题
+    // 相册名称与问题
+    let name = albumConfig.name || this.getNameFromPath(path)
     let questions: GalleryAlbumQuestions = { ...parentQuestions }
     if (albumConfig.question && albumConfig.answer) {
       questions[albumConfig.question] = albumConfig.answer
     }
 
-    let album: GalleryAlbum = {
-      path: path,
-      name: this.getNameFromPath(path),
-      type: GalleryType.ALBUM,
-      questions: questions,
-      description: albumConfig.description || null,
-      thumbnails: albumConfig.thumbnails || [],
-      items: []
+    // 构建基础对象
+    let albums: GalleryAlbumsObject = {
+      [path]: {
+        path,
+        name,
+        questions,
+        description: albumConfig.description || null,
+        thumbnails: albumConfig.thumbnails || []
+      }
     }
 
-    let albums = { path: album }
     if (albumConfig.items) {
       for (let itemPath in albumConfig.items) {
         let itemFullPath = pathJoin(path, itemPath)
-        let childAlbums = this.loadConfig(itemFullPath, albumConfig.items[itemPath], album)
+        let childAlbums = this.loadConfig(itemFullPath, albumConfig.items[itemPath], questions)
         Object.assign(albums, childAlbums)
       }
     }
     return albums
-  }
-
-  // 过滤非图片非文件夹
-  private filterDirAndImgs (files: UpYunFile[]): UpYunFile[] {
-    return files.filter((file: UpYunFile): boolean => {
-      if (isHideFile(file.name)) {
-        return false
-      } else if (file.type === UpYunFileType.File) {
-        if (!isImgFile(file.name)) {
-          return false
-        }
-      }
-      return true
-    })
   }
 
   // 文件及文件夹排序，文件夹优先
@@ -101,81 +124,22 @@ export class Gallery {
     return files
   }
 
-  // 获取又拍云图片及图集列表
-  private async getFiles (path: string): Promise<UpYunFile[]> {
-    // 获取目录所有文件
+  // 过滤图片文件
+  private imageFileFilter (file: UpYunFile): boolean {
+    return file.type === UpYunFileType.File && isImgFile(file.name)
+  }
+
+  // 过滤图集
+  private albumFilter (file: UpYunFile): boolean {
+    return file.type === UpYunFileType.Folder
+  }
+
+  // 获取所有非隐藏文件
+  private async getFiles (path: string, filter: Function): Promise<UpYunFile[]> {
     let files: UpYunFile[] = await upyun.listDirWithCache(path)
-
-    // 过滤非空目录及图片并排序
-    return this.sortFiles(this.filterDirAndImgs(files))
-  }
-
-  // 获取缩略图
-  private async getThumbnails (path: string, thumbnails: string[] = []): Promise<string[]> {
-    // 未设置缩略图则通过又拍云获取
-    if (!thumbnails || !thumbnails.length) {
-      let files: UpYunFile[] = await this.getFiles(path)
-      for (let file of files) {
-        if (file.type === UpYunFileType.File) {
-          thumbnails.push(file.name)
-        }
-      }
-    }
-
-    // 最多获取四个缩略图
-    thumbnails = thumbnails.slice(0, 4)
-    for (let i = 0; i < thumbnails.length; i++) {
-      let thumbnailPath = pathJoin(path, thumbnails[i])
-      thumbnails[i] = upyun.getThumbnailUrl(thumbnailPath)
-    }
-
-    return thumbnails
-  }
-
-  // 获取图集信息
-  private async getAlbumInfo (path: string): Promise<GalleryAlbum> {
-    let album: GalleryAlbum = Object.assign({
-      path,
-      name: this.getNameFromPath(path),
-      type: GalleryType.ALBUM,
-      questions: {},
-      description: null,
-      thumbnails: [],
-      items: []
-    }, this.config[path] || {})
-
-    album.thumbnails = await this.getThumbnails(path, album.thumbnails)
-    return album
-  }
-
-  // 获取图片列表
-  private async getImageInfo (path: string): Promise<GalleryImage> {
-    let meta: UpYunFileMeta = await upyun.getMetaWithCache(path)
-    return {
-      path,
-      name: this.getNameFromPath(path),
-      type: GalleryType.IMAGE,
-      meta,
-      url: {
-        original: upyun.getFileUrl(path),
-        thumbnail: upyun.getThumbnailUrl(path)
-      }
-    }
-  }
-
-  // 获取子节点
-  private async getItems (path: string): Promise<GalleryItem[]> {
-    let files: UpYunFile[] = await this.getFiles(path)
-    return Promise.all(
-      files.map((item): Promise<GalleryItem> => {
-        let itemPath: string = pathJoin(path, item.name)
-        if (item.type === UpYunFileType.Folder) {
-          return this.getAlbumInfo(itemPath)
-        } else {
-          return this.getImageInfo(itemPath)
-        }
-      }
-    ))
+    return this.sortFiles(
+      files.filter((file) => !isHideFile(file.name) && filter(file))
+    )
   }
 }
 

@@ -1,17 +1,21 @@
 import schedule from 'node-schedule'
 
 import logger from '../lib/logger'
+import upyun from '../service/upyun'
 import gallery from '../service/gallery'
-import { GalleryType } from '../types'
+import { GalleryImage, GalleryAlbum } from '../types'
 
 let cacheAlbum = async (path: string): Promise<void> => {
-  let album = await gallery.getAlbum(path)
-  if (album.items) {
-    for (let item of album.items) {
-      if (item.type === GalleryType.ALBUM) {
-        await cacheAlbum(item.path)
-      }
-    }
+  // 缓存子图集
+  let albums: GalleryAlbum[] = await gallery.getAlbums(path)
+  for (let album of albums) {
+    await cacheAlbum(album.path)
+  }
+
+  // 缓存图片信息
+  let images: GalleryImage[] = await gallery.getImages(path)
+  for (let image of images) {
+    await upyun.getMetaWithCache(image.path)
   }
 }
 
