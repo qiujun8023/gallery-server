@@ -1,8 +1,0 @@
-{{extend './base.art'}}
-{{block 'title'}}{{title}}{{/block}}
-{{block 'content'}}
-  <div class="error message">
-    <i class="fa fa-times-circle"></i>
-    <span class="content">{{error}}</span>
-  </div>
-{{/block}}

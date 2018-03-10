@@ -1,13 +1,8 @@
 .idea
-.vscode
 .DS_Store
-
 *.log
-*.out
-
 node_modules
-
-pm2.json
-.nyc_output
-coverage
-config/local.*
+dist
+.nyc_output/
+coverage/
+src/config/local.json
