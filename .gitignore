@@ -1,8 +1,9 @@
 .idea
+.vscode
 .DS_Store
 *.log
 node_modules
 dist
 .nyc_output/
 coverage/
-src/config/local.json
+config/local.json

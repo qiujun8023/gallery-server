@@ -1,14 +1,16 @@
+// TODO: to TypeScript
+const upyun = require('upyun')
+
 import _ from 'lodash'
 import rp from 'request-promise'
 import config from 'config'
-import upyun from 'upyun'
 
 import redis from '../lib/redis'
 import logger from '../lib/logger'
 import { md5 } from '../lib/utils'
 import { UpYunConfig, UpYunFile, UpYunFileMeta, UpYunAccessSign } from '../types'
 
-class UpYun {
+export class UpYun {
   private client: any
 
   private lastPageIter: string = 'g2gCZAAEbmV4dGQAA2VvZg'
@@ -102,16 +104,15 @@ class UpYun {
 
   // 获取目录列表
   private async listDir (path: string): Promise<UpYunFile[]> {
-    let iter: string | undefined
+    let options: any = { limit: 1000 }
     let data: UpYunFile[] = []
     do {
-      let options = { iter, limit: 1000 }
       let res = await this.client.listDir(path, options)
       if (res) {
         data = data.concat(res.files)
-        iter = res.next
+        options = { iter: res.next, ...options }
       }
-    } while (iter && iter !== this.lastPageIter)
+    } while (options.iter && options.iter !== this.lastPageIter)
 
     return data
   }
@@ -154,4 +155,4 @@ class UpYun {
   }
 }
 
-export default new UpYun(config.get('upyun'))
+export default (new UpYun(config.get('upyun')))

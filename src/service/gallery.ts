@@ -15,7 +15,7 @@ import {
   UpYunFileMeta
 } from '../types'
 
-class Gallery {
+export class Gallery {
   private config: GalleryAlbumsObject
 
   constructor (albumConfig: AlbumConfig) {

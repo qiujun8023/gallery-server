@@ -16,5 +16,5 @@ let cacheAlbum = async (path: string): Promise<void> => {
 }
 
 export default new schedule.Job('cache', () => {
-  cacheAlbum('/').catch(logger.error)
+  cacheAlbum('/').catch((e) => logger.error(e))
 })
