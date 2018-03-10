@@ -21,6 +21,27 @@ let imageUrlType = new graphql.GraphQLObjectType({
   }
 })
 
+let imageMetaExifType = new graphql.GraphQLObjectType({
+  name: 'ImageMetaExif',
+  fields: {
+    Model: { // 机型
+      type: graphql.GraphQLString
+    },
+    FNumber: { // 光圈
+      type: graphql.GraphQLString
+    },
+    ShutterSpeedValue: { // 快门速度
+      type: graphql.GraphQLString
+    },
+    ISOSpeedRatings: { // ISO 感光度
+      type: graphql.GraphQLString
+    },
+    DateTimeOriginal: { // 拍摄时间
+      type: graphql.GraphQLString
+    }
+  }
+})
+
 let imageMetaType = new graphql.GraphQLObjectType({
   name: 'ImageMeta',
   fields: {
@@ -35,6 +56,9 @@ let imageMetaType = new graphql.GraphQLObjectType({
     },
     type: {
       type: graphql.GraphQLString
+    },
+    EXIF: {
+      type: imageMetaExifType
     }
   }
 })
