@@ -26,9 +26,11 @@ export interface AlbumConfig {
   answer?: string
   description?: string
   thumbnails?: string[]
-  items?: {
-    [path: string]: AlbumConfig
-  }
+  items?: AlbumsConfig
+}
+
+export interface AlbumsConfig {
+  [path: string]: AlbumConfig
 }
 
 export interface UpYunAccessSign {
@@ -59,11 +61,6 @@ export interface UpYunFileMeta {
 export interface GalleryImage {
   path: string
   name: string
-  // meta: UpYunFileMeta
-  // url: {
-  //   original: string
-  //   thumbnail: string
-  // }
 }
 
 export interface GalleryAlbumQuestions {

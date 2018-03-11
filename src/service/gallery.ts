@@ -4,6 +4,7 @@ import { pathJoin, isHideFile, isImgFile } from '../lib/utils'
 import upyun from './upyun'
 import {
   AlbumConfig,
+  AlbumsConfig,
   GalleryImage,
   GalleryAlbumQuestions,
   GalleryAlbum,
@@ -15,8 +16,8 @@ import {
 export class Gallery {
   private config: GalleryAlbumsObject
 
-  constructor (albumConfig: AlbumConfig) {
-    this.config = this.loadConfig('/', albumConfig, {})
+  constructor (albumsConfig: AlbumsConfig) {
+    this.config = this.loadConfig(albumsConfig)
   }
 
   // 通过路径获取名称
@@ -82,30 +83,30 @@ export class Gallery {
   }
 
   // 加在配置文件
-  private loadConfig (path: string, albumConfig: AlbumConfig, parentQuestions: object): GalleryAlbumsObject {
-    // 相册名称与问题
-    let name = albumConfig.name || this.getNameFromPath(path)
-    let questions: GalleryAlbumQuestions = { ...parentQuestions }
-    if (albumConfig.question && albumConfig.answer) {
-      questions[albumConfig.question] = albumConfig.answer
-    }
+  private loadConfig (albumsConfig: AlbumsConfig, parentAlbum?: GalleryAlbum): GalleryAlbumsObject {
+    let parentPath: string = parentAlbum ? parentAlbum.path : '/'
+    let parentQuestions: GalleryAlbumQuestions = parentAlbum ? parentAlbum.questions : {}
 
-    // 构建基础对象
-    let albums: GalleryAlbumsObject = {
-      [path]: {
-        path,
-        name,
-        questions,
+    let albums: GalleryAlbumsObject = {}
+    for (let itemPath in albumsConfig) {
+      let albumConfig: AlbumConfig = albumsConfig[itemPath]
+      let itemFullPath = pathJoin(parentPath, itemPath)
+      let itemName = albumConfig.name || this.getNameFromPath(itemFullPath)
+      let itemQuestions: GalleryAlbumQuestions = { ...parentQuestions }
+      if (albumConfig.question && albumConfig.answer) {
+        itemQuestions[albumConfig.question] = albumConfig.answer
+      }
+
+      let album: GalleryAlbum = {
+        path: itemFullPath,
+        name: itemName,
+        questions: itemQuestions,
         description: albumConfig.description || null,
         thumbnails: albumConfig.thumbnails || []
       }
-    }
-
-    if (albumConfig.items) {
-      for (let itemPath in albumConfig.items) {
-        let itemFullPath = pathJoin(path, itemPath)
-        let childAlbums = this.loadConfig(itemFullPath, albumConfig.items[itemPath], questions)
-        Object.assign(albums, childAlbums)
+      albums[itemFullPath] = album
+      if (albumConfig.items) {
+        Object.assign(albums, this.loadConfig(albumConfig.items, album))
       }
     }
     return albums
