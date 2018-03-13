@@ -15,12 +15,12 @@ export class UpYun {
 
   private lastPageIter: string = 'g2gCZAAEbmV4dGQAA2VvZg'
 
-  private minImageCacheTime: number = 300
-  private maxImageCacheTime: number = 600
+  private minFileCacheTime: number = 300
+  private maxFileCacheTime: number = 600
   private minMetaCacheTime: number = 43200
   private maxMateCacheTime: number = 86400
 
-  private imageCacheKeyPrefix: string = 'image:'
+  private fileCacheKeyPrefix: string = 'file:'
   private metaCacheKeyPrefix: string = 'meta:'
 
   constructor (private upYunConfig: UpYunConfig) {
@@ -50,7 +50,7 @@ export class UpYun {
   // 获取目录列表
   public async listDirWithCache (path: string): Promise<UpYunFile[]> {
     // 读取缓存
-    let cacheKey: string = this.getImageCacheKey(path)
+    let cacheKey: string = this.getFileCacheKey(path)
     let cacheData: string = await redis.get(cacheKey)
     if (cacheData) {
       return JSON.parse(cacheData)
@@ -61,7 +61,7 @@ export class UpYun {
     let data: UpYunFile[] = await this.listDir(path)
 
     // 缓存数据
-    let cacheTime: number = this.getImageCacheTime()
+    let cacheTime: number = this.getFileCacheTime()
     logger.info('set list to cache, key: %s, ttl: ', cacheKey, cacheTime)
     await redis.setex(cacheKey, cacheTime, JSON.stringify(data))
 
@@ -131,8 +131,8 @@ export class UpYun {
   }
 
   // 文件列表缓存时间
-  private getImageCacheTime (): number {
-    return this.getRandomCacheTime(this.minImageCacheTime, this.maxImageCacheTime)
+  private getFileCacheTime (): number {
+    return this.getRandomCacheTime(this.minFileCacheTime, this.maxFileCacheTime)
   }
 
   // 元信息缓存时间
@@ -145,8 +145,8 @@ export class UpYun {
   }
 
   // 获取图片缓存key
-  private getImageCacheKey (path: string): string {
-    return this.getCacheKey(this.imageCacheKeyPrefix, path)
+  private getFileCacheKey (path: string): string {
+    return this.getCacheKey(this.fileCacheKeyPrefix, path)
   }
 
   // 获取元信息缓存key
