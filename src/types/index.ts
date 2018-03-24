@@ -64,7 +64,10 @@ export interface GalleryImage {
 }
 
 export interface GalleryAlbumQuestions {
-  [question: string]: string
+  [path: string]: {
+    question: string,
+    answer: string
+  }
 }
 
 export interface GalleryAlbum {
@@ -77,4 +80,14 @@ export interface GalleryAlbum {
 
 export interface GalleryAlbumsObject {
   [path: string]: GalleryAlbum
+}
+
+export interface OutputQuestion {
+  path: string,
+  question: string
+}
+
+export interface InputAnswer {
+  path: string,
+  answer: string
 }

@@ -15,6 +15,7 @@ import {
 
 export class Gallery {
   private config: GalleryAlbumsObject
+  private questions: GalleryAlbumQuestions = {}
 
   constructor (albumsConfig: AlbumsConfig) {
     this.config = this.loadConfig(albumsConfig)
@@ -25,15 +26,29 @@ export class Gallery {
     return path.split('/').pop() || path
   }
 
+  // 获取所有问题
+  public getQuestions () {
+    return this.questions
+  }
+
   // 获取图集信息
-  public getAlbumInfo (path: string): GalleryAlbum {
-    return {
+  public getAlbumInfo (path: string, allowed: string[]): GalleryAlbum {
+    let album: GalleryAlbum = {
       path,
       name: this.getNameFromPath(path),
       questions: {},
       description: null,
       ...this.config[path] || {}
     }
+
+    // 删除回答过的问题
+    for (let path in album.questions) {
+      if (allowed.indexOf(path) !== -1) {
+        delete album.questions[path]
+      }
+    }
+
+    return album
   }
 
   // 获取图片列表
@@ -51,9 +66,9 @@ export class Gallery {
   }
 
   // 获取图集中子图集列表
-  public async getAlbums (path: string): Promise<GalleryAlbum[]> {
+  public async getAlbums (path: string, allowed: string[]): Promise<GalleryAlbum[]> {
     let files: UpYunFile[] = await this.getFiles(path, this.albumFilter)
-    return files.map((file) => this.getAlbumInfo(pathJoin(path, file.name)))
+    return files.map((file) => this.getAlbumInfo(pathJoin(path, file.name), allowed))
   }
 
   // 获取缩略图
@@ -84,29 +99,35 @@ export class Gallery {
 
   // 加在配置文件
   private loadConfig (albumsConfig: AlbumsConfig, parentAlbum?: GalleryAlbum): GalleryAlbumsObject {
-    let parentPath: string = parentAlbum ? parentAlbum.path : '/'
-    let parentQuestions: GalleryAlbumQuestions = parentAlbum ? parentAlbum.questions : {}
+    parentAlbum = parentAlbum || {
+      path: '/',
+      name: '/',
+      description: null,
+      questions: {}
+    }
 
     let albums: GalleryAlbumsObject = {}
     for (let itemPath in albumsConfig) {
       let albumConfig: AlbumConfig = albumsConfig[itemPath]
-      let itemFullPath = pathJoin(parentPath, itemPath)
+      let itemFullPath = pathJoin(parentAlbum.path, itemPath)
       let itemName = albumConfig.name || this.getNameFromPath(itemFullPath)
-      let itemQuestions: GalleryAlbumQuestions = { ...parentQuestions }
+      let itemQuestions: GalleryAlbumQuestions = { ...parentAlbum.questions }
       if (albumConfig.question && albumConfig.answer) {
-        itemQuestions[albumConfig.question] = albumConfig.answer
+        this.questions[itemFullPath] = itemQuestions[itemFullPath] = {
+          question: albumConfig.question,
+          answer: albumConfig.answer
+        }
       }
 
-      let album: GalleryAlbum = {
+      albums[itemFullPath] = {
         path: itemFullPath,
         name: itemName,
         questions: itemQuestions,
         description: albumConfig.description || null,
         thumbnails: albumConfig.thumbnails || []
       }
-      albums[itemFullPath] = album
       if (albumConfig.items) {
-        Object.assign(albums, this.loadConfig(albumConfig.items, album))
+        Object.assign(albums, this.loadConfig(albumConfig.items, albums[itemFullPath]))
       }
     }
     return albums
