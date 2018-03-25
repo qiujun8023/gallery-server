@@ -1,3 +1,4 @@
 {
-  "env": "test"
+  "env": "test",
+  "debug": false
 }

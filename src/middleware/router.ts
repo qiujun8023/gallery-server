@@ -1,5 +1,6 @@
 import Koa from 'koa'
 import KoaRouter from 'koa-router'
+import config from 'config'
 import * as graphql from 'graphql'
 import { graphqlKoa, graphiqlKoa } from 'apollo-server-koa'
 
@@ -16,13 +17,13 @@ let graphqlHander = graphqlKoa((ctx: Koa.Context) => ({
   }
 }))
 
-let graphiqlHander = graphiqlKoa((ctx: Koa.Context) => ({
-  endpointURL: '/graphql'
-}))
-
 router.get('/graphql', graphqlHander)
 router.post('/graphql', graphqlHander)
 
-router.get('/graphiql', graphiqlHander)
+if (config.get('debug')) {
+  router.get('/graphiql', graphiqlKoa({
+    endpointURL: '/graphql'
+  }))
+}
 
 export default router

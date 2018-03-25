@@ -1,4 +1,5 @@
 {
+  "debug": true,
   "env": "development",
 
   "server": {
