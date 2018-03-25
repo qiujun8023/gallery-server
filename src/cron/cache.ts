@@ -7,7 +7,7 @@ import { GalleryImage, GalleryAlbum } from '../types'
 
 let cacheAlbum = async (path: string): Promise<void> => {
   // 缓存子图集
-  let albums: GalleryAlbum[] = await gallery.getAlbums(path)
+  let albums: GalleryAlbum[] = await gallery.getAlbums(path, [])
   for (let album of albums) {
     await cacheAlbum(album.path)
   }
