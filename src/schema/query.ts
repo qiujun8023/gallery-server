@@ -1,6 +1,7 @@
 import * as graphql from 'graphql'
 
 import albumType from './album'
+import { pathJoin } from '../lib/utils'
 import gallery from '../service/gallery'
 import { GalleryAlbum, GalleryAlbumQuestions } from '../types'
 
@@ -29,10 +30,11 @@ export default new graphql.GraphQLObjectType({
           type: new graphql.GraphQLList(answerInputType)
         }
       },
-      async resolve (obj, { path, answers }, { session }): Promise<GalleryAlbum> {
+      async resolve (obj, params, { session }): Promise<GalleryAlbum> {
         session.allowed = session.allowed || []
+        let path = pathJoin('/', params.path)
         let questions: GalleryAlbumQuestions = gallery.getQuestions()
-        for (let { path, answer } of answers) {
+        for (let { path, answer } of params.answers) {
           if (answer === questions[path].answer) {
             session.allowed.push(path)
           }

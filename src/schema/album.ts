@@ -61,7 +61,7 @@ let albumType: any = new graphql.GraphQLObjectType({
         if (!_.isEmpty(album.questions)) {
           return []
         }
-        return gallery.getAlbums(album.path, session.allowed)
+        return gallery.getAlbums(album.path, session.allowed || [])
       }
     }
   })
