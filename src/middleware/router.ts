@@ -6,7 +6,9 @@ import { graphqlKoa, graphiqlKoa } from 'apollo-server-koa'
 
 import querySchema from '../schema/query'
 
-const router = new KoaRouter()
+const router = new KoaRouter({
+  prefix: '/api'
+})
 
 let graphqlHander = graphqlKoa((ctx: Koa.Context) => ({
   schema: new graphql.GraphQLSchema({
@@ -22,7 +24,7 @@ router.post('/graphql', graphqlHander)
 
 if (config.get('debug')) {
   router.get('/graphiql', graphiqlKoa({
-    endpointURL: '/graphql'
+    endpointURL: '/api/graphql'
   }))
 }
 

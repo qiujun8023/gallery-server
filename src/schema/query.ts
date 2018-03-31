@@ -33,8 +33,9 @@ export default new graphql.GraphQLObjectType({
       async resolve (obj, params, { session }): Promise<GalleryAlbum> {
         session.allowed = session.allowed || []
         let path = pathJoin('/', params.path)
+        let answers = params.answers || []
         let questions: GalleryAlbumQuestions = gallery.getQuestions()
-        for (let { path, answer } of params.answers) {
+        for (let { path, answer } of answers) {
           if (answer === questions[path].answer) {
             session.allowed.push(path)
           }
