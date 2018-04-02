@@ -33,22 +33,24 @@ export class Gallery {
 
   // 获取图集信息
   public getAlbumInfo (path: string, allowed: string[]): GalleryAlbum {
+    let configAlbum: GalleryAlbum = this.config[path] || {}
     let album: GalleryAlbum = {
       path,
       name: this.getNameFromPath(path),
       questions: {},
       description: null,
-      ...this.config[path] || {}
+      ...configAlbum
     }
 
-    // 删除回答过的问题
-    for (let path in album.questions) {
-      if (allowed.indexOf(path) !== -1) {
-        delete album.questions[path]
+    // 获取未回答过的问题
+    let questions: GalleryAlbumQuestions = {}
+    for (let path in configAlbum.questions) {
+      if (allowed.indexOf(path) === -1) {
+        questions[path] = configAlbum.questions[path]
       }
     }
 
-    return album
+    return { ...album, questions }
   }
 
   // 获取图片列表

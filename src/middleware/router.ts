@@ -5,6 +5,7 @@ import * as graphql from 'graphql'
 import { graphqlKoa, graphiqlKoa } from 'apollo-server-koa'
 
 import querySchema from '../schema/query'
+import mutationSchema from '../schema/mutation'
 
 const router = new KoaRouter({
   prefix: '/api'
@@ -12,7 +13,8 @@ const router = new KoaRouter({
 
 let graphqlHander = graphqlKoa((ctx: Koa.Context) => ({
   schema: new graphql.GraphQLSchema({
-    query: querySchema
+    query: querySchema,
+    mutation: mutationSchema
   }),
   context: {
     session: ctx.session

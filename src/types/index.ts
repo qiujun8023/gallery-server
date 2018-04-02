@@ -82,12 +82,16 @@ export interface GalleryAlbumsObject {
   [path: string]: GalleryAlbum
 }
 
+export interface InputAnswer {
+  path: string,
+  answer: string
+}
+
 export interface OutputQuestion {
   path: string,
   question: string
 }
 
-export interface InputAnswer {
-  path: string,
-  answer: string
+export interface OutputAnswer {
+  allowed: string[]
 }
