@@ -119,10 +119,13 @@ export class UpYun {
 
   // 获取元数据
   private async getMeta (path: string): Promise<UpYunFileMeta> {
-    return rp({
+    // tslint:disable-next-line
+    let meta = await rp({
       url: this.getFileUrl(path + '!/meta'),
       json: true
     })
+    meta.EXIF = meta.EXIF || {}
+    return meta
   }
 
   // 随机生成缓存时间
