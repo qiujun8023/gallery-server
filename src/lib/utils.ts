@@ -23,7 +23,7 @@ export function isImgFile (fileName: string): boolean {
   let index: number = fileName.lastIndexOf('.')
   if (index !== -1) {
     let ext: string = fileName.substr(index)
-    return imgExts.indexOf(ext) !== -1
+    return imgExts.indexOf(ext.toLowerCase()) !== -1
   }
   return false
 }
