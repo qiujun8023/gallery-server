@@ -1,5 +1,6 @@
-import session from 'koa-generic-session'
+import koaSession from 'koa-generic-session'
 import redisStore from 'koa-redis'
+import { Context } from 'koa' // tslint:disable-line
 
 import redis from '../lib/redis'
 
@@ -11,4 +12,4 @@ let options = {
   prefix: 'session:'
 }
 
-export default () => session(options)
+export default () => koaSession(options)
