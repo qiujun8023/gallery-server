@@ -95,3 +95,7 @@ export interface OutputQuestion {
 export interface OutputAnswer {
   allowed: string[]
 }
+
+export interface OutputServer {
+  title: string
+}
