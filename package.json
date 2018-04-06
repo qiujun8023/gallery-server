@@ -2,7 +2,6 @@
   "name": "gallery-server",
   "version": "0.1.0",
   "description": "基于又拍云存储的在线相册",
-  "main": "src/index.ts",
   "author": "qiujun",
   "license": "MIT",
   "repository": {
@@ -10,7 +9,7 @@
     "url": "https://github.com/qious/gallery-server.git"
   },
   "scripts": {
-    "dev": "nodemon -w src -e ts,json -x ts-node src/index.ts",
+    "dev": "nodemon -w src -w config -e ts,js,json -x ts-node src/index.ts",
     "build": "npm run clean && tsc -d",
     "clean": "rimraf dist",
     "tslint": "tslint -c tslint.json -p tsconfig.json --exclude 'node_modules/**'",
