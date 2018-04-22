@@ -4,8 +4,8 @@
 
   "server": {
     "host": "127.0.0.1",
-    "port": 8005,
-    "baseUrl": "http://localhost:8005/",
+    "port": 8000,
+    "baseUrl": "http://localhost:8000/",
     "title": "xx相册"
   },
 
@@ -15,14 +15,14 @@
   ],
 
   "session": {
-    "secret": "album secret",
+    "secret": "gallery secret",
     "name": "SESSION"
   },
 
   "redis": {
     "host": "localhost",
     "port": 6379,
-    "keyPrefix": "album:"
+    "keyPrefix": "gallery:"
   },
 
   "upyun": {
