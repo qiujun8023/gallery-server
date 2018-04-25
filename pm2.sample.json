@@ -12,8 +12,8 @@
       "watch": false,
       "merge_logs": true,
       "autorestart": true,
-      "error_file": "/tmp/gallery.stderr.log",
-      "out_file": "/tmp/gallery.stdout.log"
+      "error_file": "/tmp/gallery.log",
+      "out_file": "/tmp/gallery.log"
     }
   ]
 }
