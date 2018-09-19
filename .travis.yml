@@ -1,0 +1,32 @@
+language: node_js
+
+env:
+  - PACKAGE_VERSION=$(npm --loglevel silent run version)
+
+services:
+  - docker
+
+node_js:
+  - "lts/*"
+
+cache:
+  directories:
+    - node_modules
+
+install:
+  - npm install -q
+
+before_script:
+  - npm run tslint
+
+script:
+  - npm run build
+  - docker build -t $DOCKER_REPOSITORY:$PACKAGE_VERSION -t $DOCKER_REPOSITORY:latest .
+
+after_success:
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
+  - docker push $DOCKER_REPOSITORY
+
+branches:
+  only:
+    - master
