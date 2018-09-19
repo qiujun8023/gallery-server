@@ -7,7 +7,6 @@ coverage/
 
 dist
 
-pm2.json
 config/local.json
 
 node_modules
