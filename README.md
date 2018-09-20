@@ -1,42 +1,40 @@
-### 项目介绍
+### 1、项目介绍
 
-##### 用途
+##### 1.1 用途
 
 > 使用 UpYun 存储的在线相册
 
-##### 特性
+##### 1.2 特性
 
 * 使用 UpYun 存储，支持防盗链，无需数据库
 * 自动读取照片信息（ISO、时间等）
 * 可自定义封面图、名称、描述以及回答问题后访问
 * 自适应瀑布流展示方式
 
-##### 演示
+##### 1.3 [演示>>](https://gallery.qiujun.me/)
 
- [Demo](https://gallery.qiujun.me/)
+### 2、Docker 部署
 
-### Docker 部署
-
-##### 依赖
+##### 2.1 依赖
 
 * docker
 * docker-compose
 
-##### 部署
-
-* 拉取配置文件
+##### 2.2 拉取应用配置文件
 
 ```bash
 wget https://raw.githubusercontent.com/qious/gallery-server/master/config/default.json -O config.json
 ```
 
-* 修改配置文件
+##### 2.3 修改应用配置文件
+
+> [配置文件说明>>](#配置文件说明)
 
 ```bash
-vim local.json # 主要修改 upyun、albums 字段内容
+vim config.json
 ```
 
-* 配置 docker-compose
+##### 2.4 配置 docker-compose
 
 ```bash
 cat > ./docker-compose.yml << \EOF
@@ -56,7 +54,7 @@ services:
     image: qious/gallery-client
     restart: always
     ports:
-      - "80"
+      - "8888:80"
     depends_on:
       - server
 EOF
@@ -67,13 +65,18 @@ EOF
 docker-compose up -d
 ```
 
-### 配置文件说明
+* 访问
+```
+curl http://localhost:8888
+```
+
+### 3、配置文件说明
 
 
 | 字段   | 必填   | 描述   |
 |:----|:----|:----|
 | debug   | 是   | 调试模式   |
-| server.host   | 是   | 监听IP，docker 用户请勿修改   |
+| server.host   | 是   | 监听IP，Docker 部署请使用 0.0.0.0   |
 | server.port   | 是   | 监听端口，与 docker-compose 配置文件对应   |
 | server.baseUrl   | 是   | 外部访问地址，形如 [https://example.com/](https://example.com/)   |
 | server.title   | 是   | 网站标题   |
