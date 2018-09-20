@@ -4,11 +4,6 @@
 
 > 使用 UpYun 存储的在线相册
 
-##### 依赖
-
-* Node.js >= 7.6.0
-* Redis
-
 ##### 特性
 
 * 使用 UpYun 存储，支持防盗链，无需数据库
@@ -20,73 +15,81 @@
 
  [Demo](https://gallery.qiujun.me/)
 
-#### 部署方式
+### Docker 部署
 
-##### 拉取最新代码
+##### 依赖
 
-```bash
-cd /path/you/want/to/deploy
-mkdir gallery
-cd gallery
-git clone https://github.com/qious/gallery-server.git server
-git clone -b dist https://github.com/qious/gallery-client.git client
-```
+* docker
+* docker-compose
 
-##### 安装依赖
+##### 部署
+
+* 拉取配置文件
 
 ```bash
-cd /path/to/gallery/server
-npm i
-sudo npm i -g pm2
+wget https://raw.githubusercontent.com/qious/gallery-server/master/config/default.json -O config.json
 ```
 
-##### 复制并修改配置文件
+* 修改配置文件
 
 ```bash
-cd /path/to/gallery/server
-cp ./config/default.json ./config/local.json
-vim ./config/local.json # 根据自身需要修改配置文件
+vim local.json # 主要修改 upyun、albums 字段内容
 ```
 
-##### 测试运行服务端
+* 配置 docker-compose
 
 ```bash
-cd /path/to/gallery/server
-npm run dev # 如无报错后可进入下一步
+cat > ./docker-compose.yml << \EOF
+version: '3'
+services:
+  redis:
+    image: redis:3
+    restart: always
+  server:
+    image: qious/gallery-server
+    restart: always
+    depends_on:
+      - redis
+    volumes:
+      - ./config.json:/app/config/local.json:ro
+  client:
+    image: qious/gallery-client
+    restart: always
+    ports:
+      - "80"
+    depends_on:
+      - server
+EOF
 ```
 
-##### 正式运行服务端
-
+* 运行
 ```bash
-cd /path/to/gallery/server
-npm run pm2.start
+docker-compose up -d
 ```
 
-##### 配置Nginx，Nginx示例配置如下
+### 配置文件说明
 
-```nginx
-upstream gallery {
-    server 127.0.0.1:8000;
-}
 
-server {
-    listen 80;
-    server_name gallery.example.com;
-
-    root /path/to/gallery/client;
-    index index.htm index.html;
-
-    location ~ /\. {
-        deny all;
-    }
-
-    location /api {
-        include proxy_params;
-        proxy_pass http://gallery/api;
-    }
-
-    location /static {
-        expires 7d;
-    }
-}
-```
+| 字段   | 必填   | 描述   |
+|:----|:----|:----|
+| debug   | 是   | 调试模式   |
+| server.host   | 是   | 监听IP，docker 用户请勿修改   |
+| server.port   | 是   | 监听端口，与 docker-compose 配置文件对应   |
+| server.baseUrl   | 是   | 外部访问地址，形如 [https://example.com/](https://example.com/)   |
+| server.title   | 是   | 网站标题   |
+| keys[0]   | 是   | 用来机密 Cookie 的随机字符串   |
+| keys[1]   | 是   | 用来机密 Cookie 的随机字符串   |
+| redis.host   | 是   | Redis 地址   |
+| redis.port   | 是   | Redis 端口   |
+| redis.keyPrefix   | 是   | Redis 键前缀   |
+| upyun.bucket   | 是   | 又拍云 bucket   |
+| upyun.operator   | 是   | 又拍云操作员名称   |
+| upyun.password   | 是   | 又怕云操作员密码   |
+| upyun.token   | 否   | 又拍云防盗链 Token，可不填   |
+| albums.[dir]   | 否   | [dir]为又怕云对应目录名称   |
+| albumes.[dir].name   | 否   | 对 [dir] 展示时进行重命名   |
+| albums.[dir].description   | 否   | 对 [dir] 的描述   |
+| albums.[dir].question   | 否   | 将 [dir] 设置为回答问题可见   |
+| albums.[dir].answer   | 否   | [dir] 问题的答案   |
+| albums.[dir].thumbnails   | 否   | [dir] 展示时的缩录图，图片需存在 [dir] 中   |
+| albums.[dir].items   | 否   | [dir] 中的子相册   |

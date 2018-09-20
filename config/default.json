@@ -13,11 +13,6 @@
     "i like turtle"
   ],
 
-  "session": {
-    "secret": "gallery secret",
-    "name": "SESSION"
-  },
-
   "redis": {
     "host": "redis",
     "port": 6379,
