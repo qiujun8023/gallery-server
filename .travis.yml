@@ -22,8 +22,6 @@ before_script:
 script:
   - npm run build
   - docker build -t $DOCKER_REPOSITORY:$PACKAGE_VERSION -t $DOCKER_REPOSITORY:latest .
-
-after_success:
   - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
   - docker push $DOCKER_REPOSITORY
 
