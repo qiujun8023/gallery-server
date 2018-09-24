@@ -1,6 +1,7 @@
 {
   "name": "gallery-server",
   "version": "0.1.0",
+  "private": true,
   "description": "基于又拍云存储的在线相册",
   "author": "qiujun",
   "license": "MIT",

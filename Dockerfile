@@ -5,7 +5,7 @@ ENV NODE_ENV production
 
 WORKDIR ${APP_ROOT}
 
-COPY package.json dist/src ${APP_ROOT}/
+COPY package.json package-lock.json dist/src ${APP_ROOT}/
 COPY config ${APP_ROOT}/config/
 
 RUN npm install
