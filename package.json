@@ -7,7 +7,7 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/qious/gallery-server.git"
+    "url": "https://github.com/qiujun8023/gallery-server.git"
   },
   "scripts": {
     "dev": "nodemon -w src -w config -e ts,js,json -x ts-node src/index.ts",

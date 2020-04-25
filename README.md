@@ -20,7 +20,7 @@
 - 拉取应用配置文件
 
 ```bash
-wget https://raw.githubusercontent.com/qious/gallery-server/master/config/default.json -O config.json
+wget https://raw.githubusercontent.com/qiujun8023/gallery-server/master/config/default.json -O config.json
 ```
 
 - 修改应用配置文件，[配置文件说明>>](#配置文件说明)
@@ -39,14 +39,14 @@ services:
     image: redis:3
     restart: always
   server:
-    image: qious/gallery-server
+    image: qiujun8023/gallery-server
     restart: always
     depends_on:
       - redis
     volumes:
       - ./config.json:/app/config/local.json:ro
   client:
-    image: qious/gallery-client
+    image: qiujun8023/gallery-client
     restart: always
     ports:
       - "8888:80"
